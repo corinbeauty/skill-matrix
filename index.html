@@ -6,7 +6,7 @@
     <title>不老松中清店 - 員工工作技能表</title>
     <!-- 匯入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 匯入 Font Awesome 用於星星圖示 -->
+    <!-- 匯入 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -31,88 +31,79 @@
             overflow: hidden;
         }
         
-        /* 自訂捲軸支援雙向，加寬以利操作 */
-        .table-container::-webkit-scrollbar {
-            height: 14px;
-            width: 14px;
-        }
-        .table-container::-webkit-scrollbar-track {
-            background: #e2e8f0;
-            border-radius: 4px;
-        }
-        .table-container::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 4px;
-            border: 2px solid #e2e8f0;
-        }
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
+        /* 捲軸美化 */
+        .table-container::-webkit-scrollbar { height: 14px; width: 14px; }
+        .table-container::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; border: 2px solid #e2e8f0; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
         /* 星星評分樣式 */
-        .star-rating {
-            display: inline-flex;
-            flex-direction: row;
-            position: relative;
-            width: 85px; 
-            justify-content: center;
-        }
+        .star-rating { display: inline-flex; flex-direction: row; position: relative; width: 85px; justify-content: center; }
         .star-rating.is-admin { cursor: pointer; }
         .star-rating i { font-size: 0.85rem; }
-        
-        /* 自訂半星顯示方式 */
-        .star-wrapper {
-            position: relative;
-            display: inline-block;
-            width: 16px;
-        }
+        .star-wrapper { position: relative; display: inline-block; width: 16px; }
         .star-wrapper .fa-star.bg-star { color: #cbd5e1; }
-        .star-wrapper .fill-star {
-            position: absolute;
-            left: 0;
-            top: 0;
-            color: #d4af37;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-        .w-0 { width: 0%; }
-        .w-50 { width: 50%; }
-        .w-100 { width: 100%; }
+        .star-wrapper .fill-star { position: absolute; left: 0; top: 0; color: #d4af37; overflow: hidden; white-space: nowrap; }
+        .w-0 { width: 0%; } .w-50 { width: 50%; } .w-100 { width: 100%; }
         
-        .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.6);
-            display: none;
-            backdrop-filter: blur(2px);
-        }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.6); display: none; backdrop-filter: blur(2px); }
         .modal-overlay.active { display: flex; }
         
-        /* 離職人員標示 */
         .is-resigned { opacity: 0.6; filter: grayscale(0.8); }
         .is-resigned:hover { opacity: 0.9; filter: grayscale(0.2); }
+
+        /* 列印模式排版 */
+        @media print {
+            body > *:not(#printContainer) { display: none !important; }
+            #printContainer { 
+                display: block !important; 
+                position: absolute; 
+                left: 0; top: 0; 
+                width: 100%; 
+                background: white; 
+            }
+            .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+        }
     </style>
 </head>
-<body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden">
+<body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden relative">
+
+    <div class="bg-[#fdfaf1] text-center py-1.5 px-4 border-b border-amber-200 shrink-0 z-40">
+        <h2 class="text-sm font-bold text-gray-800 tracking-widest">此評核由店長填寫 總監審閱</h2>
+        <p class="text-[11px] text-gray-500 mt-0.5">評核會依據每月執行狀況調整，並讓人員確認學習及改善方向</p>
+    </div>
 
     <header class="bg-primary text-white shadow-md py-2 px-4 flex justify-between items-center z-30 shrink-0">
-        <div class="flex items-center gap-3">
-            <i class="fa-solid fa-leaf text-secondary text-xl"></i>
+        <div class="flex items-center flex-wrap gap-4">
             <h1 class="text-xl font-bold tracking-wider">不老松足湯 中清店</h1>
-            <span class="text-xs border-l border-gray-400 pl-2 ml-2 text-gray-200">員工技能表</span>
+            
+            <div class="flex items-center gap-2 bg-emerald-900/50 px-3 py-1 rounded-md border border-emerald-700">
+                <label class="text-xs text-emerald-100 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1"></i>月份:</label>
+                <input type="month" id="monthSelector" class="bg-white text-gray-800 text-xs px-2 py-0.5 rounded outline-none border border-emerald-600 focus:ring-1 focus:ring-secondary font-bold">
+                
+                <span class="border-l border-emerald-700 h-4 mx-1"></span>
+                
+                <label class="text-xs text-emerald-100 whitespace-nowrap">評核日期:</label>
+                <input type="date" id="evaluationDate" class="bg-white text-gray-800 text-xs px-2 py-0.5 rounded outline-none border border-emerald-600 disabled:bg-gray-300 disabled:text-gray-500" disabled>
+            </div>
         </div>
         
-        <!-- 訪客/預設狀態 -->
+        <!-- 訪客狀態 -->
         <div class="flex gap-2" id="guestToolbar">
-            <div class="text-xs text-gray-300 self-center mr-2"><i class="fa-solid fa-cloud"></i> 雲端同步中...</div>
+            <div class="text-xs text-gray-300 self-center mr-2"><i class="fa-solid fa-cloud"></i> 資料同步中...</div>
             <button id="loginBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-md transition-colors text-xs font-medium flex items-center gap-1 shadow-sm">
-                <i class="fa-solid fa-lock"></i> 管理員登入
+                <i class="fa-solid fa-lock"></i> 進入管理模式
             </button>
         </div>
         
-        <!-- 管理員狀態 (預設隱藏) -->
+        <!-- 管理員狀態 -->
         <div class="hidden gap-2 items-center" id="adminToolbar">
             <label class="flex items-center gap-1 text-xs text-white bg-gray-700 hover:bg-gray-600 px-2 py-1.5 rounded-md cursor-pointer transition-colors border border-gray-500 mr-2">
                 <input type="checkbox" id="showResignedCheckbox" class="rounded accent-secondary"> 顯示離職
             </label>
+            <button id="printOverviewBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-md transition-colors text-xs font-medium flex items-center gap-1 shadow-sm border border-indigo-400">
+                <i class="fa-solid fa-print"></i> 總覽/列印
+            </button>
             <button id="manageColumnsBtn" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md transition-colors text-xs font-medium flex items-center gap-1 shadow-sm border border-emerald-500">
                 <i class="fa-solid fa-gear"></i> 欄位管理
             </button>
@@ -120,31 +111,29 @@
                 <i class="fa-solid fa-plus"></i> 新增員工
             </button>
             <button id="logoutBtn" class="bg-red-700 hover:bg-red-600 text-white px-3 py-1.5 rounded-md transition-colors text-xs font-medium flex items-center gap-1 shadow-sm">
-                <i class="fa-solid fa-right-from-bracket"></i> 登出
+                <i class="fa-solid fa-right-from-bracket"></i> 退出管理
             </button>
         </div>
     </header>
 
     <main class="flex-grow p-2 md:p-3 flex flex-col overflow-hidden gap-3 min-h-0">
-        
-        <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col flex-grow border border-gray-200 min-h-0">
-            <!-- 頂部工具列 -->
+        <!-- 技能表區塊 -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col flex-grow border border-gray-200 min-h-0 relative">
             <div class="p-2 border-b border-gray-200 bg-gray-50 flex justify-between items-center shrink-0">
                 <div class="relative">
                     <i class="fa-solid fa-search absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
                     <input type="text" id="searchInput" placeholder="搜尋姓名..." class="pl-8 pr-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent text-xs w-48">
                 </div>
                 <div class="text-xs text-gray-500 flex items-center gap-2">
-                    <span id="syncStatus" class="text-emerald-600"><i class="fa-solid fa-check-circle"></i> 已同步最新資料</span>
+                    <span id="syncStatus" class="text-emerald-600"><i class="fa-solid fa-check-circle"></i> 當月資料已同步</span>
                 </div>
             </div>
 
-            <!-- 表格容器，滿版設計 -->
+            <!-- 表格容器 -->
             <div class="table-container overflow-auto flex-grow relative bg-gray-50 w-full" id="tableWrapper">
                 <table class="w-full text-xs whitespace-nowrap border-collapse min-w-max" id="employeeTable">
-                    <!-- 表頭與內容將由 JS 動態生成轉置矩陣 -->
+                    <!-- 表頭與內容動態產生 -->
                 </table>
-                <!-- 空資料狀態 -->
                 <div id="emptyState" class="hidden flex-col items-center justify-center py-12 text-gray-500 w-full absolute top-1/3 left-0 pointer-events-none">
                     <i class="fa-solid fa-users text-4xl mb-3 text-gray-300"></i>
                     <p>無符合的員工資料</p>
@@ -152,12 +141,12 @@
             </div>
         </div>
         
-        <!-- 客訴紀錄區塊 (預設折疊) -->
+        <!-- 客訴紀錄區塊 -->
         <div class="bg-white rounded-lg shadow-md border border-red-100 overflow-hidden shrink-0">
             <div class="bg-red-50 border-b border-red-100 p-2 flex justify-between items-center cursor-pointer" id="complaintHeader">
                 <div class="flex items-center gap-2 text-red-700">
                     <i class="fa-solid fa-triangle-exclamation text-sm"></i>
-                    <h2 class="font-bold text-sm">客訴與異常紀錄</h2>
+                    <h2 class="font-bold text-sm">客訴與異常紀錄 (<span id="currentMonthDisplay"></span>)</h2>
                     <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full" id="complaintCount">0</span>
                 </div>
                 <i class="fa-solid fa-chevron-down text-red-400 transition-transform duration-300" id="complaintToggleIcon"></i>
@@ -165,7 +154,7 @@
             
             <div class="p-4 hidden" id="complaintContent">
                 <form id="complaintForm" class="hidden mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 class="text-sm font-bold text-gray-700 mb-3">新增紀錄</h3>
+                    <h3 class="text-sm font-bold text-gray-700 mb-3">新增當月紀錄</h3>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-xs text-gray-600 mb-1">發生日期</label>
@@ -218,31 +207,45 @@
                             </tr>
                         </thead>
                         <tbody id="complaintTableBody">
-                            <!-- 客訴紀錄由 JS 產生 -->
+                            <!-- 客訴紀錄 -->
                         </tbody>
                     </table>
-                    <div id="emptyComplaintState" class="text-center py-4 text-gray-500 text-sm hidden">
-                        尚無客訴紀錄
-                    </div>
+                    <div id="emptyComplaintState" class="text-center py-4 text-gray-500 text-sm hidden">尚無客訴紀錄</div>
                 </div>
             </div>
         </div>
     </main>
+
+    <div id="printContainer" class="hidden absolute top-0 left-0 w-full bg-white z-[100] min-h-screen p-8 text-gray-800">
+        <div class="flex justify-between items-end mb-6 border-b-2 border-primary pb-2">
+            <div>
+                <h1 class="text-2xl font-bold text-primary tracking-widest">不老松足湯 中清店</h1>
+                <h2 class="text-lg font-bold text-gray-700 mt-1">員工工作技能總覽 - <span id="printMonth"></span></h2>
+            </div>
+            <div class="text-right text-xs text-gray-500">
+                <p>此評核由店長填寫 總監審閱</p>
+                <p id="printEvalDate">評核日期：尚未設定</p>
+            </div>
+        </div>
+        
+        <!-- 一頁式資料將由 JS 填入 -->
+        <div id="printContent" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        
+        <div class="mt-8 text-center hidden print:block">
+            <button onclick="closePrintView()" class="bg-gray-500 text-white px-6 py-2 rounded shadow">關閉總覽</button>
+        </div>
+    </div>
 
     <!-- Modal: 新增/編輯員工 -->
     <div id="employeeModal" class="modal-overlay fixed inset-0 z-50 items-center justify-center">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-primary text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold text-lg" id="modalTitle">新增員工資料</h3>
-                <button id="closeModalBtn" class="text-gray-300 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
+                <button id="closeModalBtn" class="text-gray-300 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            
             <div class="p-6 overflow-y-auto flex-grow">
                 <form id="employeeForm">
                     <input type="hidden" id="editEmpId" value="">
-                    
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">姓名 <span class="text-red-500">*</span></label>
@@ -252,11 +255,10 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">在職狀態</label>
                             <select id="empStatus" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary bg-gray-50 font-bold">
                                 <option value="active" class="text-green-700">🟢 在職</option>
-                                <option value="resigned" class="text-red-700">🔴 離職</option>
+                                <option value="resigned" class="text-red-700">🔴 離職 (隱藏)</option>
                             </select>
                         </div>
                     </div>
-                    
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">入職日期 <span class="text-red-500">*</span></label>
@@ -272,14 +274,12 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">大頭貼照 (選填，圖片網址)</label>
                         <input type="url" id="empPhotoUrl" placeholder="https://..." class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
                     </div>
                 </form>
             </div>
-            
             <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
                 <button id="cancelModalBtn" type="button" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors">取消</button>
                 <button id="submitEmployeeBtn" form="employeeForm" type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-emerald-800 transition-colors">儲存</button>
@@ -292,38 +292,28 @@
         <div class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 overflow-hidden">
             <div class="bg-emerald-800 text-white p-3 flex justify-between items-center">
                 <h3 class="font-bold text-sm"><i class="fa-solid fa-lock mr-2"></i>管理員權限驗證</h3>
-                <button onclick="document.getElementById('authModal').classList.remove('active')" class="text-gray-300 hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <button onclick="document.getElementById('authModal').classList.remove('active')" class="text-gray-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-5 text-center">
-                <p class="text-sm text-gray-600 mb-4">請輸入管理員密碼 (8888) 以進入編輯模式。</p>
+                <p class="text-sm text-gray-600 mb-4">請輸入管理員密碼以進入編輯模式。</p>
                 <input type="password" id="adminPassword" class="w-full border border-gray-300 rounded p-2 text-center text-lg tracking-widest focus:ring-primary focus:border-primary mb-4" placeholder="輸入密碼">
                 <button id="verifyPasswordBtn" class="w-full bg-primary text-white py-2 rounded hover:bg-emerald-800 transition-colors text-sm font-bold">驗證並進入</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: 欄位(列)管理 -->
+    <!-- Modal: 欄位管理 -->
     <div id="manageColumnsModal" class="modal-overlay fixed inset-0 z-[60] items-center justify-center">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-[85vh]">
             <div class="bg-emerald-800 text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold text-lg"><i class="fa-solid fa-table-list mr-2"></i>技能與項目欄位管理</h3>
-                <button onclick="document.getElementById('manageColumnsModal').classList.remove('active')" class="text-gray-300 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
+                <button onclick="document.getElementById('manageColumnsModal').classList.remove('active')" class="text-gray-300 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            
             <div class="p-4 bg-gray-50 border-b border-gray-200 flex gap-2">
-                <button onclick="addNewRow('rating')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition-colors shadow-sm">
-                    <i class="fa-solid fa-star mr-1"></i> 新增評分項目
-                </button>
-                <button onclick="addNewRow('category')" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm transition-colors shadow-sm">
-                    <i class="fa-solid fa-folder-open mr-1"></i> 新增分類標題
-                </button>
+                <button onclick="addNewRow('rating')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition-colors shadow-sm"><i class="fa-solid fa-star mr-1"></i> 新增評分項目</button>
+                <button onclick="addNewRow('category')" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm transition-colors shadow-sm"><i class="fa-solid fa-folder-open mr-1"></i> 新增分類標題</button>
                 <span class="text-xs text-gray-500 ml-auto self-center">基本資料欄位已鎖定不可刪除</span>
             </div>
-
             <div class="p-0 overflow-y-auto flex-grow bg-white">
                 <table class="w-full text-sm text-left">
                     <thead class="bg-gray-100 text-gray-700 sticky top-0 shadow-sm z-10">
@@ -333,24 +323,19 @@
                             <th class="px-4 py-2 w-24 text-center">操作</th>
                         </tr>
                     </thead>
-                    <tbody id="columnsManageBody">
-                        <!-- 透過 JS 動態產生 -->
-                    </tbody>
+                    <tbody id="columnsManageBody"></tbody>
                 </table>
             </div>
-            
             <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
                 <button onclick="document.getElementById('manageColumnsModal').classList.remove('active')" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-emerald-800 transition-colors shadow-sm">完成並套用</button>
             </div>
         </div>
     </div>
 
-    <!-- 自訂訊息框 (替代 alert) -->
+    <!-- 自訂訊息框 -->
     <div id="messageModal" class="modal-overlay fixed inset-0 z-[70] items-center justify-center">
         <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 text-center">
-            <div id="messageIcon" class="text-4xl mb-3 text-primary">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
+            <div id="messageIcon" class="text-4xl mb-3 text-primary"><i class="fa-solid fa-circle-check"></i></div>
             <h3 id="messageTitle" class="text-lg font-bold text-gray-800 mb-2">提示</h3>
             <p id="messageText" class="text-gray-600 mb-5">操作成功</p>
             <button id="messageCloseBtn" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors">確定</button>
@@ -360,7 +345,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // 用戶提供的 Firebase Config
         const firebaseConfig = {
@@ -373,25 +358,30 @@
             measurementId: "G-CRGNXZ9WVG"
         };
         
-        // 為了確保不影響既有資料，使用專屬命名空間與路徑
         const APP_ID = 'bulaosong-skills';
-        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
         // 系統狀態
         let isAdmin = false; 
+        let currentMonth = new Date().toISOString().slice(0, 7); // 例如 '2026-10'
         let employees = [];
         let complaints = [];
         let rowsConfig = [];
+        let evaluationDate = '';
         
-        // 預設欄位設定 (當雲端沒資料時的初始值)
+        // Firebase 監聽器註銷函式
+        let unsubConfig = null;
+        let unsubEmployees = null;
+        let unsubComplaints = null;
+
+        // 預設欄位設定 (包含新增的主管行政作業)
         const defaultRowsConfig = [
             { id: 'joinDate', label: '入職日', type: 'info', locked: true },
             { id: 'tenure', label: '年資', type: 'info', locked: true },
             { id: 'level', label: '職級', type: 'info', locked: true },
-            { id: 'totalStars', label: '🌟 星級總分', type: 'info', locked: true }, // 新增星級總分列
+            { id: 'totalStars', label: '🌟 星級總分', type: 'info', locked: true },
             { id: 'cat_skill', label: '工作技能', type: 'category' },
             { id: 'aDown', label: 'A下', type: 'rating' },
             { id: 'aUp', label: 'A上', type: 'rating' },
@@ -409,10 +399,19 @@
             { id: 'cooperation', label: '配合度', type: 'rating' },
             { id: 'attendance', label: '出勤', type: 'rating' },
             { id: 'appearance', label: '儀態', type: 'rating' },
+            { id: 'cat_supervisor', label: '主管行政作業', type: 'category' },
+            { id: 'hr', label: '人事作業', type: 'rating' },
+            { id: 'general', label: '總務作業', type: 'rating' },
+            { id: 'report', label: '報表作業', type: 'rating' },
+            { id: 'interview', label: '訪談作業', type: 'rating' },
+            { id: 'order', label: '叫貨作業', type: 'rating' },
+            { id: 'marketing', label: '行銷作業', type: 'rating' },
+            { id: 'training', label: '人員訓練', type: 'rating' },
+            { id: 'zodiac', label: '十二生肖', type: 'rating' },
             { id: 'actions', label: '資料操作', type: 'actions', locked: true }
         ];
 
-        // 預設人員 (依照圖片順序，帶入職級)
+        // 預設人員 
         const defaultEmployees = [
             { id: 'e_01', name: '黃詩涵', level: '店長', joinDate: '2020-01-01', status: 'active', ratings: {} },
             { id: 'e_02', name: '劉芸汝', level: '主任', joinDate: '2021-01-01', status: 'active', ratings: {} },
@@ -430,35 +429,53 @@
             { id: 'e_14', name: '施孟均', level: '櫃台', joinDate: '2024-10-01', status: 'active', ratings: {} }
         ];
 
-        // 登入並初始化資料監聽
+        const monthSelector = document.getElementById('monthSelector');
+        monthSelector.value = currentMonth;
+        
+        monthSelector.addEventListener('change', (e) => {
+            currentMonth = e.target.value;
+            loadDataForMonth(currentMonth);
+        });
+
         signInAnonymously(auth).then(() => {
             console.log("Firebase 匿名連線成功");
+            loadDataForMonth(currentMonth);
+        }).catch(err => {
+            console.error(err);
+            showMessage("連線錯誤", "無法連接至雲端資料庫。", "error");
+        });
+
+        function loadDataForMonth(monthStr) {
+            // 清除舊監聽
+            if(unsubConfig) unsubConfig();
+            if(unsubEmployees) unsubEmployees();
+            if(unsubComplaints) unsubComplaints();
             
-            // 獨立路徑：artifacts/bulaosong-skills/public/data/...
-            const colConfig = collection(db, 'artifacts', APP_ID, 'public', 'data', 'config');
-            const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees');
-            const colComplaints = collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints');
+            document.getElementById('currentMonthDisplay').innerText = monthStr;
             
-            // 1. 監聽欄位設定
-            onSnapshot(colConfig, (snapshot) => {
-                let hasData = false;
+            // 獨立的月份路徑
+            const colConfig = collection(db, 'artifacts', APP_ID, 'public', 'data', 'config_' + monthStr);
+            const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees_' + monthStr);
+            const colComplaints = collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints_' + monthStr);
+            
+            // 1. 監聽設定與中繼資料 (包含評核日期)
+            unsubConfig = onSnapshot(colConfig, (snapshot) => {
+                let hasRows = false;
                 snapshot.forEach(doc => {
                     if(doc.id === 'rows') {
                         rowsConfig = doc.data().data;
-                        hasData = true;
+                        hasRows = true;
+                    }
+                    if(doc.id === 'metadata') {
+                        evaluationDate = doc.data().evaluationDate || '';
+                        document.getElementById('evaluationDate').value = evaluationDate;
                     }
                 });
                 
-                // 初次使用，寫入預設欄位
-                if(!hasData) {
+                // 初次使用或新月份無資料，寫入預設
+                if(!hasRows) {
                     rowsConfig = defaultRowsConfig;
                     setDoc(doc(colConfig, 'rows'), { data: rowsConfig });
-                }
-                
-                // 確保總分列存在 (相容舊資料)
-                if(!rowsConfig.find(r => r.id === 'totalStars')) {
-                    const levelIdx = rowsConfig.findIndex(r => r.id === 'level');
-                    rowsConfig.splice(levelIdx + 1, 0, { id: 'totalStars', label: '🌟 星級總分', type: 'info', locked: true });
                 }
                 
                 renderEmployeeTable();
@@ -466,24 +483,21 @@
             }, (error) => console.error(error));
 
             // 2. 監聽員工資料
-            onSnapshot(colEmployees, (snapshot) => {
-                if(snapshot.empty && employees.length === 0) {
-                    // 初次使用寫入預設人員
+            unsubEmployees = onSnapshot(colEmployees, (snapshot) => {
+                if(snapshot.empty) {
+                    // 若新月份為空，直接將預設人員寫入該月份
                     defaultEmployees.forEach(emp => {
                         setDoc(doc(colEmployees, emp.id), emp);
                     });
                 } else {
                     employees = [];
-                    snapshot.forEach(docSnap => {
-                        employees.push({ id: docSnap.id, ...docSnap.data() });
-                    });
+                    snapshot.forEach(docSnap => { employees.push({ id: docSnap.id, ...docSnap.data() }); });
                     
-                    // 動態計算每人的星級總分
                     const categories = getSkillCategories();
                     employees.forEach(emp => {
                         let total = 0;
                         categories.forEach(cat => { total += (emp.ratings[cat] || 0); });
-                        emp.totalStars = total; // 暫存在物件中供排序與顯示
+                        emp.totalStars = total; 
                     });
                     
                     renderEmployeeTable();
@@ -492,22 +506,22 @@
             }, (error) => console.error(error));
 
             // 3. 監聽客訴資料
-            onSnapshot(colComplaints, (snapshot) => {
+            unsubComplaints = onSnapshot(colComplaints, (snapshot) => {
                 complaints = [];
-                snapshot.forEach(docSnap => {
-                    complaints.push({ id: docSnap.id, ...docSnap.data() });
-                });
+                snapshot.forEach(docSnap => { complaints.push({ id: docSnap.id, ...docSnap.data() }); });
                 renderComplaints();
             }, (error) => console.error(error));
+        }
 
-        }).catch((error) => {
-            console.error("Firebase Auth 錯誤:", error);
-            showMessage("連線錯誤", "無法連接至雲端資料庫，請確認設定。", "error");
+        // 評核日期儲存邏輯
+        document.getElementById('evaluationDate').addEventListener('change', (e) => {
+            if(!isAdmin) return;
+            const newDate = e.target.value;
+            const colConfig = collection(db, 'artifacts', APP_ID, 'public', 'data', 'config_' + currentMonth);
+            setDoc(doc(colConfig, 'metadata'), { evaluationDate: newDate }, { merge: true });
         });
 
-        function getSkillCategories() {
-            return rowsConfig.filter(row => row.type === 'rating').map(row => row.id);
-        }
+        function getSkillCategories() { return rowsConfig.filter(row => row.type === 'rating').map(row => row.id); }
         
         function showMessage(title, text, type = 'success') {
             const modal = document.getElementById('messageModal');
@@ -520,15 +534,12 @@
             modal.classList.add('active');
         }
 
-        document.getElementById('messageCloseBtn').addEventListener('click', () => {
-            document.getElementById('messageModal').classList.remove('active');
-        });
+        document.getElementById('messageCloseBtn').addEventListener('click', () => document.getElementById('messageModal').classList.remove('active'));
 
-        // 計算年資
         function calculateTenure(joinDateStr) {
             if (!joinDateStr) return '-';
             const joinDate = new Date(joinDateStr);
-            const today = new Date('2026-10-03'); // 基準日
+            const today = new Date(); 
             if (joinDate > today) return '尚未入職';
             let years = today.getFullYear() - joinDate.getFullYear();
             let months = today.getMonth() - joinDate.getMonth();
@@ -540,7 +551,6 @@
             return result;
         }
 
-        // 星星渲染與互動邏輯
         function generateStarRatingHTML(empId, category, rating) {
             const adminClass = isAdmin ? 'is-admin' : '';
             let html = `<div class="star-rating ${adminClass}" data-emp="${empId}" data-cat="${category}" onmousemove="handleStarHover(event)" onmouseleave="handleStarLeave(event)" onclick="handleStarClick(event)">`;
@@ -552,8 +562,7 @@
                     <i class="fa-solid fa-star fill-star ${fillWidthClass}"></i>
                 </div>`;
             }
-            html += `</div>`;
-            html += `<div class="text-[10px] text-gray-500 mt-1 font-medium rating-text text-center w-full">${(rating || 0).toFixed(1)}</div>`;
+            html += `</div><div class="text-[10px] text-gray-500 mt-1 font-medium rating-text text-center w-full">${(rating || 0).toFixed(1)}</div>`;
             return html;
         }
 
@@ -589,7 +598,6 @@
             const empId = container.getAttribute('data-emp');
             const cat = container.getAttribute('data-cat');
             
-            // 更新本地與雲端
             const emp = employees.find(e => e.id === empId);
             if(emp) {
                 emp.ratings[cat] = finalRating;
@@ -599,16 +607,16 @@
                 getSkillCategories().forEach(c => newTotal += (emp.ratings[c] || 0));
                 emp.totalStars = newTotal;
                 
-                // 局部更新 UI
                 container.nextElementSibling.innerText = finalRating.toFixed(1);
                 updateStarVisuals(container, finalRating);
                 
-                // 更新該員工的總分列 UI
                 const totalCell = document.getElementById(`total_${empId}`);
-                if(totalCell) totalCell.innerHTML = `<span class="text-secondary font-bold text-[12px] bg-yellow-50 px-2 py-0.5 rounded border border-yellow-200">${newTotal.toFixed(1)}</span>`;
+                if(totalCell) totalCell.innerHTML = `<span class="text-secondary font-bold text-sm bg-yellow-50 px-2 py-1 rounded border border-yellow-200 shadow-sm">${newTotal.toFixed(1)}</span>`;
+                const bottomTotalCell = document.getElementById(`btm_total_${empId}`);
+                if(bottomTotalCell) bottomTotalCell.innerHTML = `<span class="text-secondary font-bold text-sm bg-yellow-50 px-3 py-1 rounded border border-yellow-200 shadow-sm">${newTotal.toFixed(1)}</span>`;
                 
-                // 寫入雲端
-                const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees');
+                // 儲存至當月表
+                const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees_' + currentMonth);
                 updateDoc(doc(colEmployees, empId), { ratings: emp.ratings });
             }
         };
@@ -621,24 +629,18 @@
             });
         }
 
-        // 渲染員工矩陣表格 (由左至右排版)
         function renderEmployeeTable() {
             const filterText = document.getElementById('searchInput').value;
             const showResigned = document.getElementById('showResignedCheckbox').checked;
-            
             const table = document.getElementById('employeeTable');
             const emptyState = document.getElementById('emptyState');
             table.innerHTML = '';
             
             const lowerFilter = filterText.toLowerCase();
             let filteredEmp = employees.filter(emp => emp.name.toLowerCase().includes(lowerFilter));
-            
-            // 離職過濾
-            if (!showResigned) {
-                filteredEmp = filteredEmp.filter(emp => emp.status !== 'resigned');
-            }
+            if (!showResigned) { filteredEmp = filteredEmp.filter(emp => emp.status !== 'resigned'); }
 
-            // 排序邏輯：職級 > 星級總數 (降冪)
+            // 排序：職級 > 星級總數
             const levelRank = { '店長': 1, '主任': 2, '領航員': 3, '櫃台': 4 };
             filteredEmp.sort((a, b) => {
                 const rankA = levelRank[a.level] || 99;
@@ -646,121 +648,100 @@
                 if (rankA !== rankB) return rankA - rankB;
                 return (b.totalStars || 0) - (a.totalStars || 0);
             });
+            
+            // 存入全域供列印使用
+            window.currentFilteredEmp = filteredEmp;
 
             if (filteredEmp.length === 0) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
+                emptyState.classList.remove('hidden'); emptyState.classList.add('flex');
                 return;
             }
-            
-            emptyState.classList.add('hidden');
-            emptyState.classList.remove('flex');
+            emptyState.classList.add('hidden'); emptyState.classList.remove('flex');
 
-            // 1. 建立固定的頂部表頭 (含照片與姓名)
-            let thead = `<thead><tr>`;
-            thead += `<th class="sticky top-0 left-0 bg-primary text-white z-30 w-24 border-b border-emerald-900 p-2 align-bottom shadow-[2px_2px_5px_rgba(0,0,0,0.2)] tracking-widest text-center text-xs">項目 \\ 員工</th>`;
-            
+            let thead = `<thead><tr><th class="sticky top-0 left-0 bg-primary text-white z-30 w-24 border-b border-emerald-900 p-2 align-bottom shadow-[2px_2px_5px_rgba(0,0,0,0.2)] tracking-widest text-center text-xs">項目 \\ 員工</th>`;
             filteredEmp.forEach(emp => {
                 const photoSrc = emp.photo || `https://placehold.co/60x60/2c4a3b/ffffff?text=${emp.name.charAt(0)}`;
                 const resignedClass = emp.status === 'resigned' ? 'is-resigned bg-gray-100' : 'bg-white';
                 const resignedBadge = emp.status === 'resigned' ? `<div class="absolute top-0 right-0 bg-red-600 text-white text-[9px] px-1 rounded-bl">離職</div>` : '';
-                
                 thead += `
                     <th class="sticky top-0 ${resignedClass} border-b border-gray-300 z-20 min-w-[90px] p-2 text-center shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-r border-gray-200 relative">
                         ${resignedBadge}
                         <img src="${photoSrc}" alt="${emp.name}" class="w-10 h-10 rounded-full mx-auto mb-1 border-2 border-gray-200 object-cover shadow-sm">
                         <div class="font-bold text-gray-800 text-sm leading-tight">${emp.name}</div>
-                    </th>
-                `;
+                    </th>`;
             });
-            thead += `</tr></thead>`;
-
-            // 2. 渲染每一列資料
-            let tbody = `<tbody>`;
+            thead += `</tr></thead><tbody>`;
             
             rowsConfig.forEach((row, rowIndex) => {
                 const bgClass = rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50/50';
 
-                // 分類標籤列
                 if (row.type === 'category') {
-                    tbody += `<tr>`;
-                    tbody += `<th class="sticky left-0 bg-emerald-800 text-white z-10 w-24 px-2 py-1 text-center font-bold border-r border-gray-300 shadow-[2px_0_4px_rgba(0,0,0,0.1)] text-xs tracking-widest">${row.label}</th>`;
-                    tbody += `<td colspan="${filteredEmp.length}" class="bg-emerald-50/50 border-r border-gray-100 p-0 shadow-inner"></td>`;
-                    tbody += `</tr>`;
+                    thead += `<tr><th class="sticky left-0 bg-emerald-800 text-white z-10 w-24 px-2 py-1 text-center font-bold border-r border-gray-300 shadow-[2px_0_4px_rgba(0,0,0,0.1)] text-xs tracking-widest">${row.label}</th><td colspan="${filteredEmp.length}" class="bg-emerald-50/50 border-r border-gray-100 p-0 shadow-inner"></td></tr>`;
                     return;
                 }
 
-                tbody += `<tr class="${bgClass} hover:bg-emerald-50 transition-colors">`;
-                // 左側固定欄位名稱
-                tbody += `<th class="sticky left-0 bg-primary text-emerald-50 z-10 w-24 px-2 py-2 text-center font-medium border-r border-emerald-900 shadow-[2px_0_4px_rgba(0,0,0,0.1)] text-xs">${row.label}</th>`;
+                thead += `<tr class="${bgClass} hover:bg-emerald-50 transition-colors">`;
+                thead += `<th class="sticky left-0 bg-primary text-emerald-50 z-10 w-24 px-2 py-2 text-center font-medium border-r border-emerald-900 shadow-[2px_0_4px_rgba(0,0,0,0.1)] text-xs">${row.label}</th>`;
 
-                // 填入員工資料
                 filteredEmp.forEach(emp => {
                     const cellClass = emp.status === 'resigned' ? 'opacity-70 bg-gray-50/50' : '';
-                    tbody += `<td class="px-2 py-2 border-r border-gray-200 text-center align-middle ${cellClass}">`;
+                    thead += `<td class="px-2 py-2 border-r border-gray-200 text-center align-middle ${cellClass}">`;
                     
                     if (row.type === 'info') {
                         if (row.id === 'tenure') {
-                            tbody += `<span class="text-emerald-700 font-bold text-[11px]">${calculateTenure(emp.joinDate)}</span>`;
+                            thead += `<span class="text-emerald-700 font-bold text-[11px]">${calculateTenure(emp.joinDate)}</span>`;
                         } else if (row.id === 'level') {
-                            tbody += `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">${emp.level}</span>`;
+                            thead += `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">${emp.level}</span>`;
                         } else if (row.id === 'totalStars') {
-                            // 星級總分列 (給予專屬ID以便動態更新)
-                            tbody += `<div id="total_${emp.id}"><span class="text-secondary font-bold text-[12px] bg-yellow-50 px-2 py-0.5 rounded border border-yellow-200">${(emp.totalStars || 0).toFixed(1)}</span></div>`;
+                            thead += `<div id="total_${emp.id}"><span class="text-secondary font-bold text-sm bg-yellow-50 px-2 py-1 rounded border border-yellow-200 shadow-sm">${(emp.totalStars || 0).toFixed(1)}</span></div>`;
                         } else {
-                            tbody += `<span class="text-gray-700 font-medium text-[11px]">${emp[row.id] || ''}</span>`;
+                            thead += `<span class="text-gray-700 font-medium text-[11px]">${emp[row.id] || ''}</span>`;
                         }
                     } else if (row.type === 'rating') {
                         if (emp.ratings[row.id] === undefined) emp.ratings[row.id] = 0;
-                        tbody += generateStarRatingHTML(emp.id, row.id, emp.ratings[row.id]);
+                        thead += generateStarRatingHTML(emp.id, row.id, emp.ratings[row.id]);
                     } else if (row.type === 'actions') {
                         if (isAdmin) {
-                            tbody += `
-                                <div class="flex justify-center gap-1">
-                                    <button onclick="editEmployee('${emp.id}')" class="text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-2 py-1 bg-blue-50 rounded transition-colors text-[10px] font-medium border border-blue-200"><i class="fa-solid fa-pen"></i></button>
-                                </div>
-                            `;
+                            thead += `<button onclick="editEmployee('${emp.id}')" class="text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-2 py-1 bg-blue-50 rounded transition-colors text-[10px] font-medium border border-blue-200"><i class="fa-solid fa-pen"></i></button>`;
                         } else {
-                            tbody += `<span class="text-[10px] text-gray-400"><i class="fa-solid fa-lock"></i> 唯讀</span>`;
+                            thead += `<span class="text-[10px] text-gray-400"><i class="fa-solid fa-lock"></i> 唯讀</span>`;
                         }
                     }
-                    tbody += `</td>`;
+                    thead += `</td>`;
                 });
-                tbody += `</tr>`;
+                thead += `</tr>`;
             });
-            tbody += `</tbody>`;
-
-            table.innerHTML = thead + tbody;
+            
+            // 最底部的星級總計列
+            thead += `<tr><th class="sticky left-0 bg-amber-100 text-amber-800 z-10 w-24 px-2 py-3 text-center font-bold border-r border-amber-300 shadow-[2px_0_4px_rgba(0,0,0,0.1)] text-xs tracking-widest border-t-2 border-amber-400">總計</th>`;
+            filteredEmp.forEach(emp => {
+                thead += `<td class="px-2 py-3 border-r border-amber-200 text-center align-middle bg-amber-50/30 border-t-2 border-amber-400" id="btm_total_${emp.id}">
+                            <span class="text-secondary font-bold text-sm bg-yellow-50 px-3 py-1 rounded border border-yellow-200 shadow-sm">${(emp.totalStars || 0).toFixed(1)}</span>
+                          </td>`;
+            });
+            thead += `</tr></tbody>`;
+            table.innerHTML = thead;
         }
 
         document.getElementById('searchInput').addEventListener('input', renderEmployeeTable);
         document.getElementById('showResignedCheckbox').addEventListener('change', renderEmployeeTable);
 
-        // 客訴功能
-        const complaintHeader = document.getElementById('complaintHeader');
-        const complaintContent = document.getElementById('complaintContent');
-        complaintHeader.addEventListener('click', () => {
-            complaintContent.classList.toggle('hidden');
+        document.getElementById('complaintHeader').addEventListener('click', () => {
+            document.getElementById('complaintContent').classList.toggle('hidden');
             document.getElementById('complaintToggleIcon').classList.toggle('rotate-180');
         });
 
         function updateComplaintEmployeeSelect() {
             const select = document.getElementById('complaintEmployee');
             select.innerHTML = '<option value="">無特定對象 / 整體</option>';
-            employees.filter(e => e.status !== 'resigned').forEach(emp => {
-                select.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
-            });
+            employees.filter(e => e.status !== 'resigned').forEach(emp => { select.innerHTML += `<option value="${emp.id}">${emp.name}</option>`; });
         }
 
         function renderComplaints() {
             const tbody = document.getElementById('complaintTableBody');
             document.getElementById('complaintCount').innerText = complaints.length;
             tbody.innerHTML = '';
-
-            if (complaints.length === 0) {
-                document.getElementById('emptyComplaintState').classList.remove('hidden');
-                return;
-            }
+            if (complaints.length === 0) { document.getElementById('emptyComplaintState').classList.remove('hidden'); return; }
             document.getElementById('emptyComplaintState').classList.add('hidden');
             
             complaints.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(comp => {
@@ -773,21 +754,17 @@
                     ? '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full"><i class="fa-solid fa-check mr-1"></i>已結案</span>'
                     : '<span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full"><i class="fa-solid fa-clock mr-1"></i>處理中</span>';
                 
-                let actionHtml = isAdmin ? `
-                        <button onclick="toggleComplaintStatus('${comp.id}')" class="text-blue-500 hover:text-blue-700 text-xs mr-2">切換狀態</button>
-                        <button onclick="deleteComplaint('${comp.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash text-xs"></i></button>
-                    ` : `<span class="text-[10px] text-gray-400"><i class="fa-solid fa-lock"></i></span>`;
+                let actionHtml = isAdmin ? `<button onclick="toggleComplaintStatus('${comp.id}')" class="text-blue-500 hover:text-blue-700 text-xs mr-2">切換狀態</button>
+                        <button onclick="deleteComplaint('${comp.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash text-xs"></i></button>` : `<span class="text-[10px] text-gray-400"><i class="fa-solid fa-lock"></i></span>`;
 
-                tbody.innerHTML += `
-                    <tr class="border-b border-gray-100 hover:bg-red-50">
+                tbody.innerHTML += `<tr class="border-b border-gray-100 hover:bg-red-50">
                         <td class="px-4 py-2">${comp.date}</td>
                         <td class="px-4 py-2 font-medium">${empName}</td>
                         <td class="px-4 py-2"><span class="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded">${comp.type}</span></td>
                         <td class="px-4 py-2 max-w-md truncate" title="${comp.desc}">${comp.desc}</td>
                         <td class="px-4 py-2">${statusHtml}</td>
                         <td class="px-4 py-2 text-center">${actionHtml}</td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         }
 
@@ -800,36 +777,120 @@
                 status: document.getElementById('complaintStatus').value,
                 desc: document.getElementById('complaintDesc').value
             };
-            const colComplaints = collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints');
+            const colComplaints = collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints_' + currentMonth);
             setDoc(doc(colComplaints, 'c_' + Date.now()), newComp);
             e.target.reset();
-            document.getElementById('complaintDate').valueAsDate = new Date('2026-10-03');
             showMessage('成功', '已新增客訴紀錄');
         });
 
         window.toggleComplaintStatus = function(id) {
             const comp = complaints.find(c => c.id === id);
-            if(comp) {
-                const colComplaints = collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints');
-                updateDoc(doc(colComplaints, id), { status: comp.status === 'resolved' ? 'pending' : 'resolved' });
+            if(comp) updateDoc(doc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints_' + currentMonth), id), { status: comp.status === 'resolved' ? 'pending' : 'resolved' });
+        };
+
+        window.deleteComplaint = function(id) { deleteDoc(doc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints_' + currentMonth), id)); };
+
+        // 產出一頁式總覽 (列印用)
+        document.getElementById('printOverviewBtn').addEventListener('click', () => {
+            if(!window.currentFilteredEmp || window.currentFilteredEmp.length === 0) return;
+            
+            document.getElementById('printMonth').innerText = currentMonth;
+            document.getElementById('printEvalDate').innerText = '評核日期：' + (document.getElementById('evaluationDate').value || '尚未設定');
+            
+            const printContent = document.getElementById('printContent');
+            printContent.innerHTML = '';
+            
+            window.currentFilteredEmp.forEach(emp => {
+                let cardHtml = `
+                <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 shadow-sm break-inside-avoid">
+                    <div class="flex items-center gap-3 mb-3 border-b border-gray-200 pb-2">
+                        <img src="${emp.photo || `https://placehold.co/60x60/2c4a3b/ffffff?text=${emp.name.charAt(0)}`}" class="w-12 h-12 rounded-full border border-gray-300">
+                        <div>
+                            <div class="font-bold text-lg text-gray-800">${emp.name}</div>
+                            <div class="text-xs text-gray-600 bg-amber-100 px-2 py-0.5 rounded inline-block">${emp.level}</div>
+                        </div>
+                        <div class="ml-auto text-center">
+                            <div class="text-[10px] text-gray-500">星級總計</div>
+                            <div class="font-bold text-lg text-secondary">${(emp.totalStars || 0).toFixed(1)}</div>
+                        </div>
+                    </div>
+                    <table class="w-full text-xs text-left">
+                        <tbody>`;
+                
+                rowsConfig.forEach(row => {
+                    if (row.type === 'category') {
+                        cardHtml += `<tr><td colspan="2" class="font-bold text-primary pt-2 pb-1 border-b border-emerald-100">${row.label}</td></tr>`;
+                    } else if (row.type === 'rating') {
+                        let r = emp.ratings[row.id] || 0;
+                        let stars = '';
+                        for(let i=1; i<=5; i++) {
+                            if(r >= i) stars += '<i class="fa-solid fa-star text-secondary"></i>';
+                            else if(r === i-0.5) stars += '<i class="fa-solid fa-star-half-stroke text-secondary"></i>';
+                            else stars += '<i class="fa-regular fa-star text-gray-300"></i>';
+                        }
+                        cardHtml += `<tr><td class="py-1 text-gray-600 w-24">${row.label}</td><td class="py-1">${stars} <span class="text-gray-400 ml-1 text-[10px]">${r.toFixed(1)}</span></td></tr>`;
+                    }
+                });
+                
+                cardHtml += `</tbody></table></div>`;
+                printContent.innerHTML += cardHtml;
+            });
+            
+            document.getElementById('printContainer').classList.remove('hidden');
+            setTimeout(() => { window.print(); }, 500); // 給予渲染時間後呼叫列印
+        });
+
+        window.closePrintView = function() {
+            document.getElementById('printContainer').classList.add('hidden');
+        };
+
+        const authModal = document.getElementById('authModal');
+        const adminPasswordInput = document.getElementById('adminPassword');
+        
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            adminPasswordInput.value = ''; authModal.classList.add('active'); adminPasswordInput.focus();
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            isAdmin = false; updateUIState(); showMessage('已退出管理', '返回唯讀模式');
+        });
+
+        document.getElementById('verifyPasswordBtn').addEventListener('click', () => {
+            if (adminPasswordInput.value === '8888') {
+                isAdmin = true; authModal.classList.remove('active'); updateUIState();
+                showMessage('驗證成功', '已開啟管理權限');
+            } else { showMessage('驗證失敗', '密碼錯誤', 'error'); adminPasswordInput.value = ''; }
+        });
+
+        adminPasswordInput.addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('verifyPasswordBtn').click(); });
+
+        function updateUIState() {
+            const guestToolbar = document.getElementById('guestToolbar');
+            const adminToolbar = document.getElementById('adminToolbar');
+            const evalInput = document.getElementById('evaluationDate');
+
+            if (isAdmin) {
+                guestToolbar.classList.replace('flex', 'hidden');
+                adminToolbar.classList.replace('hidden', 'flex');
+                document.getElementById('complaintForm').classList.remove('hidden');
+                document.getElementById('showResignedCheckbox').checked = false;
+                evalInput.disabled = false;
+            } else {
+                guestToolbar.classList.replace('hidden', 'flex');
+                adminToolbar.classList.replace('flex', 'hidden');
+                document.getElementById('complaintForm').classList.add('hidden');
+                evalInput.disabled = true;
             }
-        };
+            renderEmployeeTable(); renderComplaints();
+        }
 
-        window.deleteComplaint = function(id) {
-            const colComplaints = collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints');
-            deleteDoc(doc(colComplaints, id));
-        };
-
-        // 員工表單邏輯
+        // 員工表單
         const employeeModal = document.getElementById('employeeModal');
         const employeeForm = document.getElementById('employeeForm');
 
         document.getElementById('addEmployeeBtn').addEventListener('click', () => {
-            employeeForm.reset();
-            document.getElementById('editEmpId').value = '';
-            document.getElementById('empStatus').value = 'active';
-            document.getElementById('modalTitle').innerText = '新增員工資料';
-            employeeModal.classList.add('active');
+            employeeForm.reset(); document.getElementById('editEmpId').value = ''; document.getElementById('empStatus').value = 'active';
+            document.getElementById('modalTitle').innerText = '新增員工資料'; employeeModal.classList.add('active');
         });
 
         document.getElementById('closeModalBtn').addEventListener('click', () => employeeModal.classList.remove('active'));
@@ -839,155 +900,62 @@
             e.preventDefault();
             const editId = document.getElementById('editEmpId').value;
             const empData = {
-                name: document.getElementById('empName').value,
-                status: document.getElementById('empStatus').value,
-                joinDate: document.getElementById('empJoinDate').value,
-                level: document.getElementById('empLevel').value,
+                name: document.getElementById('empName').value, status: document.getElementById('empStatus').value,
+                joinDate: document.getElementById('empJoinDate').value, level: document.getElementById('empLevel').value,
                 photo: document.getElementById('empPhotoUrl').value
             };
-
-            const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees');
+            const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees_' + currentMonth);
 
             if (editId) {
-                updateDoc(doc(colEmployees, editId), empData);
-                showMessage('成功', '員工資料已更新');
+                updateDoc(doc(colEmployees, editId), empData); showMessage('成功', '資料已更新');
             } else {
                 const newId = 'e_' + Date.now();
-                empData.ratings = {};
-                getSkillCategories().forEach(cat => empData.ratings[cat] = 0);
-                setDoc(doc(colEmployees, newId), empData);
-                showMessage('成功', '已新增員工');
+                empData.ratings = {}; getSkillCategories().forEach(cat => empData.ratings[cat] = 0);
+                setDoc(doc(colEmployees, newId), empData); showMessage('成功', '已新增員工');
             }
             employeeModal.classList.remove('active');
         });
 
         window.editEmployee = function(id) {
-            const emp = employees.find(e => e.id === id);
-            if (!emp) return;
-            document.getElementById('editEmpId').value = emp.id;
-            document.getElementById('empName').value = emp.name;
-            document.getElementById('empStatus').value = emp.status || 'active';
-            document.getElementById('empJoinDate').value = emp.joinDate;
-            document.getElementById('empLevel').value = emp.level;
-            document.getElementById('empPhotoUrl').value = emp.photo || '';
-            document.getElementById('modalTitle').innerText = '編輯員工資料';
-            employeeModal.classList.add('active');
+            const emp = employees.find(e => e.id === id); if (!emp) return;
+            document.getElementById('editEmpId').value = emp.id; document.getElementById('empName').value = emp.name;
+            document.getElementById('empStatus').value = emp.status || 'active'; document.getElementById('empJoinDate').value = emp.joinDate;
+            document.getElementById('empLevel').value = emp.level; document.getElementById('empPhotoUrl').value = emp.photo || '';
+            document.getElementById('modalTitle').innerText = '編輯資料'; employeeModal.classList.add('active');
         };
 
-        // 權限與動態欄位管理
-        const authModal = document.getElementById('authModal');
-        const adminPasswordInput = document.getElementById('adminPassword');
-        
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            adminPasswordInput.value = '';
-            authModal.classList.add('active');
-            adminPasswordInput.focus();
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            isAdmin = false;
-            updateUIState();
-            showMessage('已登出', '返回唯讀模式');
-        });
-
-        document.getElementById('verifyPasswordBtn').addEventListener('click', () => {
-            if (adminPasswordInput.value === '8888') {
-                isAdmin = true;
-                authModal.classList.remove('active');
-                updateUIState();
-                showMessage('登入成功', '已開啟管理權限，資料編輯將自動儲存至雲端');
-            } else {
-                showMessage('驗證失敗', '密碼錯誤', 'error');
-                adminPasswordInput.value = '';
-            }
-        });
-
-        adminPasswordInput.addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('verifyPasswordBtn').click(); });
-
-        function updateUIState() {
-            const guestToolbar = document.getElementById('guestToolbar');
-            const adminToolbar = document.getElementById('adminToolbar');
-            const complaintForm = document.getElementById('complaintForm');
-
-            if (isAdmin) {
-                guestToolbar.classList.replace('flex', 'hidden');
-                adminToolbar.classList.replace('hidden', 'flex');
-                complaintForm.classList.remove('hidden');
-                document.getElementById('showResignedCheckbox').checked = false; // 預設不看
-            } else {
-                guestToolbar.classList.replace('hidden', 'flex');
-                adminToolbar.classList.replace('flex', 'hidden');
-                complaintForm.classList.add('hidden');
-            }
-            renderEmployeeTable();
-            renderComplaints();
-        }
-
+        // 欄位管理
         document.getElementById('manageColumnsBtn').addEventListener('click', () => {
-            renderColumnsManageTable();
-            document.getElementById('manageColumnsModal').classList.add('active');
+            renderColumnsManageTable(); document.getElementById('manageColumnsModal').classList.add('active');
         });
 
-        function saveConfigToCloud() {
-            const colConfig = collection(db, 'artifacts', APP_ID, 'public', 'data', 'config');
-            updateDoc(doc(colConfig, 'rows'), { data: rowsConfig });
-        }
+        function saveConfigToCloud() { updateDoc(doc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'config_' + currentMonth), 'rows'), { data: rowsConfig }); }
 
         function renderColumnsManageTable() {
-            const tbody = document.getElementById('columnsManageBody');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('columnsManageBody'); tbody.innerHTML = '';
             rowsConfig.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 tr.className = `border-b border-gray-100 ${row.locked ? 'bg-gray-50' : 'hover:bg-emerald-50'}`;
-                
                 let typeBadge = row.type === 'info' ? '<span class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-[10px]">基本資料</span>'
                     : row.type === 'category' ? '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[10px]">分類</span>'
                     : row.type === 'rating' ? '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px]">評分項目</span>'
                     : '<span class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-[10px]">操作列</span>';
 
-                tr.innerHTML = `
-                    <td class="px-4 py-2">${typeBadge}</td>
-                    <td class="px-4 py-2">
-                        ${row.locked ? `<span class="text-gray-500 font-medium">${row.label} <i class="fa-solid fa-lock text-[10px] ml-1"></i></span>` 
-                        : `<input type="text" value="${row.label}" onchange="updateRowLabel(${index}, this.value)" class="border-b border-gray-300 focus:border-primary focus:outline-none bg-transparent w-full text-sm font-medium text-gray-800">`}
-                    </td>
-                    <td class="px-4 py-2 text-center">
-                        ${row.locked ? `<span class="text-xs text-gray-400">已鎖定</span>` 
-                        : `<button onclick="deleteRow(${index})" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="fa-solid fa-trash"></i></button>`}
-                    </td>
-                `;
+                tr.innerHTML = `<td class="px-4 py-2">${typeBadge}</td>
+                    <td class="px-4 py-2">${row.locked ? `<span class="text-gray-500 font-medium">${row.label} <i class="fa-solid fa-lock text-[10px] ml-1"></i></span>` : `<input type="text" value="${row.label}" onchange="updateRowLabel(${index}, this.value)" class="border-b border-gray-300 focus:border-primary focus:outline-none bg-transparent w-full text-sm font-medium text-gray-800">`}</td>
+                    <td class="px-4 py-2 text-center">${row.locked ? `<span class="text-xs text-gray-400">已鎖定</span>` : `<button onclick="deleteRow(${index})" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="fa-solid fa-trash"></i></button>`}</td>`;
                 tbody.appendChild(tr);
             });
         }
 
-        window.updateRowLabel = function(index, newLabel) {
-            if (newLabel.trim() === '') return;
-            rowsConfig[index].label = newLabel.trim();
-            saveConfigToCloud();
-        };
-
-        window.deleteRow = function(index) {
-            if (rowsConfig[index].locked) return;
-            rowsConfig.splice(index, 1);
-            saveConfigToCloud();
-        };
-
+        window.updateRowLabel = function(index, newLabel) { if (newLabel.trim() === '') return; rowsConfig[index].label = newLabel.trim(); saveConfigToCloud(); };
+        window.deleteRow = function(index) { if (rowsConfig[index].locked) return; rowsConfig.splice(index, 1); saveConfigToCloud(); };
         window.addNewRow = function(type) {
             const label = prompt(`請輸入新${type === 'category' ? '分類標題' : '評分項目'}的名稱：`);
             if (!label || label.trim() === '') return;
             const insertIndex = rowsConfig.findIndex(r => r.type === 'actions');
-            rowsConfig.splice(insertIndex !== -1 ? insertIndex : rowsConfig.length, 0, {
-                id: (type === 'rating' ? 'rating_' : 'cat_') + Date.now(),
-                label: label.trim(),
-                type: type
-            });
+            rowsConfig.splice(insertIndex !== -1 ? insertIndex : rowsConfig.length, 0, { id: (type === 'rating' ? 'rating_' : 'cat_') + Date.now(), label: label.trim(), type: type });
             saveConfigToCloud();
-        };
-
-        // 初始化日期預設
-        window.onload = function() {
-            document.getElementById('complaintDate').valueAsDate = new Date('2026-10-03');
-            updateUIState();
         };
     </script>
 </body>
