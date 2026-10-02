@@ -43,7 +43,7 @@
         .star-rating i { font-size: 0.85rem; }
         .star-wrapper { position: relative; display: inline-block; width: 16px; }
         .star-wrapper .fa-star.bg-star { color: #cbd5e1; }
-        .star-wrapper .fill-star { position: absolute; left: 0; top: 0; color: #d4af37; overflow: hidden; white-space: nowrap; }
+        .star-wrapper .fill-star { position: absolute; left: 0; top: 0; color: #d4af37; overflow: hidden; white-space: nowrap; transition: width 0.1s ease-in-out; }
         .w-0 { width: 0%; } .w-50 { width: 50%; } .w-100 { width: 100%; }
         
         .modal-overlay { background-color: rgba(0, 0, 0, 0.6); display: none; backdrop-filter: blur(2px); }
@@ -52,18 +52,22 @@
         .is-resigned { opacity: 0.6; filter: grayscale(0.8); }
         .is-resigned:hover { opacity: 0.9; filter: grayscale(0.2); }
 
-        /* 列印模式排版 */
-        @media print {
-            body > *:not(#printContainer) { display: none !important; }
-            #printContainer { 
-                display: block !important; 
-                position: absolute; 
-                left: 0; top: 0; 
-                width: 100%; 
-                background: white; 
-            }
-            .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+        /* 截圖模式排版 */
+        #screenshotContainer { 
+            display: none; 
+            position: absolute; 
+            left: 0; top: 0; 
+            width: 100%; 
+            min-height: 100vh;
+            background: #fdfaf1; 
+            z-index: 100;
+            overflow-y: auto;
         }
+        #screenshotContainer.active { display: block; }
+        
+        /* 動畫 */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden relative">
@@ -101,8 +105,8 @@
             <label class="flex items-center gap-1 text-xs text-white bg-gray-700 hover:bg-gray-600 px-2 py-1.5 rounded-md cursor-pointer transition-colors border border-gray-500 mr-2">
                 <input type="checkbox" id="showResignedCheckbox" class="rounded accent-secondary"> 顯示離職
             </label>
-            <button id="printOverviewBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-md transition-colors text-xs font-medium flex items-center gap-1 shadow-sm border border-indigo-400">
-                <i class="fa-solid fa-print"></i> 總覽/列印
+            <button id="screenshotOverviewBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-md transition-colors text-xs font-medium flex items-center gap-1 shadow-sm border border-indigo-400">
+                <i class="fa-solid fa-camera"></i> 總覽/截圖
             </button>
             <button id="manageColumnsBtn" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md transition-colors text-xs font-medium flex items-center gap-1 shadow-sm border border-emerald-500">
                 <i class="fa-solid fa-gear"></i> 欄位管理
@@ -129,7 +133,7 @@
                 </div>
             </div>
 
-            <!-- 表格容器 -->
+            <!-- 橫向表格容器 -->
             <div class="table-container overflow-auto flex-grow relative bg-gray-50 w-full" id="tableWrapper">
                 <table class="w-full text-xs whitespace-nowrap border-collapse min-w-max" id="employeeTable">
                     <!-- 表頭與內容動態產生 -->
@@ -143,7 +147,7 @@
         
         <!-- 客訴紀錄區塊 -->
         <div class="bg-white rounded-lg shadow-md border border-red-100 overflow-hidden shrink-0">
-            <div class="bg-red-50 border-b border-red-100 p-2 flex justify-between items-center cursor-pointer" id="complaintHeader">
+            <div class="bg-red-50 border-b border-red-100 p-2 flex justify-between items-center cursor-pointer hover:bg-red-100 transition-colors" id="complaintHeader">
                 <div class="flex items-center gap-2 text-red-700">
                     <i class="fa-solid fa-triangle-exclamation text-sm"></i>
                     <h2 class="font-bold text-sm">客訴與異常紀錄 (<span id="currentMonthDisplay"></span>)</h2>
@@ -152,9 +156,9 @@
                 <i class="fa-solid fa-chevron-down text-red-400 transition-transform duration-300" id="complaintToggleIcon"></i>
             </div>
             
-            <div class="p-4 hidden" id="complaintContent">
-                <form id="complaintForm" class="hidden mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 class="text-sm font-bold text-gray-700 mb-3">新增當月紀錄</h3>
+            <div class="p-4 hidden fade-in" id="complaintContent">
+                <form id="complaintForm" class="hidden mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3"><i class="fa-solid fa-plus-circle mr-1"></i>新增當月紀錄</h3>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-xs text-gray-600 mb-1">發生日期</label>
@@ -187,53 +191,55 @@
                             <input type="text" id="complaintDesc" class="w-full border border-gray-300 rounded p-1.5 text-sm" placeholder="簡述事件狀況..." required>
                         </div>
                         <div class="md:col-span-1 flex items-end">
-                            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white rounded p-1.5 text-xs transition-colors h-[34px]">
+                            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white rounded p-1.5 text-xs transition-colors h-[34px] shadow">
                                 <i class="fa-solid fa-plus mr-1"></i> 新增紀錄
                             </button>
                         </div>
                     </div>
                 </form>
 
-                <div class="overflow-x-auto max-h-40 overflow-y-auto">
+                <div class="overflow-x-auto max-h-40 overflow-y-auto border border-gray-200 rounded">
                     <table class="w-full text-xs text-left">
-                        <thead class="text-[10px] text-gray-700 bg-gray-100 uppercase sticky top-0 z-10">
+                        <thead class="text-[10px] text-gray-700 bg-gray-100 uppercase sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th class="px-4 py-2">日期</th>
-                                <th class="px-4 py-2">相關人員</th>
-                                <th class="px-4 py-2">類型</th>
+                                <th class="px-4 py-2 w-24">日期</th>
+                                <th class="px-4 py-2 w-32">相關人員</th>
+                                <th class="px-4 py-2 w-24">類型</th>
                                 <th class="px-4 py-2">事件描述</th>
-                                <th class="px-4 py-2">狀態</th>
-                                <th class="px-4 py-2 text-center">操作</th>
+                                <th class="px-4 py-2 w-24">狀態</th>
+                                <th class="px-4 py-2 w-24 text-center">操作</th>
                             </tr>
                         </thead>
-                        <tbody id="complaintTableBody">
+                        <tbody id="complaintTableBody" class="bg-white">
                             <!-- 客訴紀錄 -->
                         </tbody>
                     </table>
-                    <div id="emptyComplaintState" class="text-center py-4 text-gray-500 text-sm hidden">尚無客訴紀錄</div>
+                    <div id="emptyComplaintState" class="text-center py-6 text-gray-500 text-sm hidden bg-white">尚無客訴紀錄</div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="printContainer" class="hidden absolute top-0 left-0 w-full bg-white z-[100] min-h-screen p-8 text-gray-800">
+    <!-- 全螢幕一頁式截圖區 -->
+    <div id="screenshotContainer" class="p-8 text-gray-800">
+        <!-- 頂部浮動關閉按鈕 -->
+        <button onclick="closeScreenshotView()" class="fixed top-6 right-6 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-gray-700 z-[110] flex items-center gap-2">
+            <i class="fa-solid fa-xmark"></i> 結束截圖模式
+        </button>
+
         <div class="flex justify-between items-end mb-6 border-b-2 border-primary pb-2">
             <div>
                 <h1 class="text-2xl font-bold text-primary tracking-widest">不老松足湯 中清店</h1>
-                <h2 class="text-lg font-bold text-gray-700 mt-1">員工工作技能總覽 - <span id="printMonth"></span></h2>
+                <h2 class="text-lg font-bold text-gray-700 mt-1">員工工作技能總覽 - <span id="screenshotMonth"></span></h2>
             </div>
             <div class="text-right text-xs text-gray-500">
                 <p>此評核由店長填寫 總監審閱</p>
-                <p id="printEvalDate">評核日期：尚未設定</p>
+                <p id="screenshotEvalDate">評核日期：尚未設定</p>
             </div>
         </div>
         
         <!-- 一頁式資料將由 JS 填入 -->
-        <div id="printContent" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-        
-        <div class="mt-8 text-center hidden print:block">
-            <button onclick="closePrintView()" class="bg-gray-500 text-white px-6 py-2 rounded shadow">關閉總覽</button>
-        </div>
+        <div id="screenshotContent" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"></div>
     </div>
 
     <!-- Modal: 新增/編輯員工 -->
@@ -250,6 +256,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">姓名 <span class="text-red-500">*</span></label>
                             <input type="text" id="empName" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                            <p class="text-[10px] text-gray-500 mt-1">圖片會自動從雲端抓取 (姓名.jpg)</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">在職狀態</label>
@@ -274,20 +281,16 @@
                             </select>
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">大頭貼照 (選填，圖片網址)</label>
-                        <input type="url" id="empPhotoUrl" placeholder="https://..." class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
-                    </div>
                 </form>
             </div>
             <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
                 <button id="cancelModalBtn" type="button" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors">取消</button>
-                <button id="submitEmployeeBtn" form="employeeForm" type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-emerald-800 transition-colors">儲存</button>
+                <button id="submitEmployeeBtn" form="employeeForm" type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-emerald-800 transition-colors shadow">儲存</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: 權限密碼驗證 -->
+    <!-- Modal: 權限密碼驗證 (登入用) -->
     <div id="authModal" class="modal-overlay fixed inset-0 z-[60] items-center justify-center">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 overflow-hidden">
             <div class="bg-emerald-800 text-white p-3 flex justify-between items-center">
@@ -295,9 +298,26 @@
                 <button onclick="document.getElementById('authModal').classList.remove('active')" class="text-gray-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-5 text-center">
-                <p class="text-sm text-gray-600 mb-4">請輸入管理員密碼以進入編輯模式。</p>
+                <p class="text-sm text-gray-600 mb-4">請輸入管理員密碼以解鎖編輯權限。</p>
                 <input type="password" id="adminPassword" class="w-full border border-gray-300 rounded p-2 text-center text-lg tracking-widest focus:ring-primary focus:border-primary mb-4" placeholder="輸入密碼">
-                <button id="verifyPasswordBtn" class="w-full bg-primary text-white py-2 rounded hover:bg-emerald-800 transition-colors text-sm font-bold">驗證並進入</button>
+                <button id="verifyPasswordBtn" class="w-full bg-primary text-white py-2 rounded hover:bg-emerald-800 transition-colors text-sm font-bold shadow">驗證並進入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 刪除欄位安全驗證 (8888) -->
+    <div id="deleteColModal" class="modal-overlay fixed inset-0 z-[70] items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-4 overflow-hidden border-t-4 border-red-600">
+            <div class="p-5 text-center">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 text-4xl mb-3"></i>
+                <h3 class="font-bold text-lg text-gray-800 mb-2">確認刪除欄位？</h3>
+                <p class="text-sm text-gray-600 mb-4">刪除後將無法復原相關評分紀錄。<br>請輸入權限密碼 (8888) 確認刪除：</p>
+                <input type="hidden" id="deleteColIndex" value="">
+                <input type="password" id="deleteColPassword" class="w-full border border-gray-300 rounded p-2 text-center text-lg tracking-widest focus:ring-red-500 focus:border-red-500 mb-4" placeholder="輸入密碼">
+                <div class="flex gap-2 justify-center">
+                    <button onclick="document.getElementById('deleteColModal').classList.remove('active')" class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100">取消</button>
+                    <button onclick="confirmDeleteRow()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-bold shadow">確認刪除</button>
+                </div>
             </div>
         </div>
     </div>
@@ -309,45 +329,46 @@
                 <h3 class="font-bold text-lg"><i class="fa-solid fa-table-list mr-2"></i>技能與項目欄位管理</h3>
                 <button onclick="document.getElementById('manageColumnsModal').classList.remove('active')" class="text-gray-300 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-4 bg-gray-50 border-b border-gray-200 flex gap-2">
+            <div class="p-4 bg-gray-50 border-b border-gray-200 flex gap-2 flex-wrap">
                 <button onclick="addNewRow('rating')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition-colors shadow-sm"><i class="fa-solid fa-star mr-1"></i> 新增評分項目</button>
                 <button onclick="addNewRow('category')" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm transition-colors shadow-sm"><i class="fa-solid fa-folder-open mr-1"></i> 新增分類標題</button>
-                <span class="text-xs text-gray-500 ml-auto self-center">基本資料欄位已鎖定不可刪除</span>
+                <span class="text-xs text-gray-500 ml-auto self-center bg-yellow-100 px-2 py-1 rounded border border-yellow-200">基本資料欄位已鎖定不可隱藏/刪除</span>
             </div>
             <div class="p-0 overflow-y-auto flex-grow bg-white">
                 <table class="w-full text-sm text-left">
                     <thead class="bg-gray-100 text-gray-700 sticky top-0 shadow-sm z-10">
                         <tr>
-                            <th class="px-4 py-2 w-24">類型</th>
-                            <th class="px-4 py-2">顯示名稱 (點擊可編輯)</th>
-                            <th class="px-4 py-2 w-24 text-center">操作</th>
+                            <th class="px-4 py-3 w-24">狀態</th>
+                            <th class="px-4 py-3 w-24">類型</th>
+                            <th class="px-4 py-3">顯示名稱 (點擊可編輯)</th>
+                            <th class="px-4 py-3 w-32 text-center">操作</th>
                         </tr>
                     </thead>
-                    <tbody id="columnsManageBody"></tbody>
+                    <tbody id="columnsManageBody" class="divide-y divide-gray-100"></tbody>
                 </table>
             </div>
             <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-                <button onclick="document.getElementById('manageColumnsModal').classList.remove('active')" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-emerald-800 transition-colors shadow-sm">完成並套用</button>
+                <button onclick="document.getElementById('manageColumnsModal').classList.remove('active')" class="px-6 py-2 bg-primary text-white rounded-md hover:bg-emerald-800 transition-colors shadow-sm font-bold">完成並套用</button>
             </div>
         </div>
     </div>
 
     <!-- 自訂訊息框 -->
-    <div id="messageModal" class="modal-overlay fixed inset-0 z-[70] items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 text-center">
-            <div id="messageIcon" class="text-4xl mb-3 text-primary"><i class="fa-solid fa-circle-check"></i></div>
-            <h3 id="messageTitle" class="text-lg font-bold text-gray-800 mb-2">提示</h3>
-            <p id="messageText" class="text-gray-600 mb-5">操作成功</p>
-            <button id="messageCloseBtn" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-emerald-800 transition-colors">確定</button>
+    <div id="messageModal" class="modal-overlay fixed inset-0 z-[90] items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-4 text-center transform transition-all fade-in">
+            <div id="messageIcon" class="text-5xl mb-4 text-primary"><i class="fa-solid fa-circle-check"></i></div>
+            <h3 id="messageTitle" class="text-xl font-bold text-gray-800 mb-2">提示</h3>
+            <p id="messageText" class="text-gray-600 mb-6">操作成功</p>
+            <button id="messageCloseBtn" class="bg-primary text-white px-8 py-2 rounded-md hover:bg-emerald-800 transition-colors shadow font-bold">確定</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 用戶提供的 Firebase Config
+        // ====== 使用者提供的 Firebase Config ======
         const firebaseConfig = {
             apiKey: "AIzaSyAdjCBcgRvDyv3ApKBGfhDSRrjcDv23Mrw",
             authDomain: "wrok-schedule.firebaseapp.com",
@@ -358,60 +379,65 @@
             measurementId: "G-CRGNXZ9WVG"
         };
         
-        const APP_ID = 'bulaosong-skills';
+        // 獨立資料夾名稱，絕不會與你的班表系統衝突
+        const APP_ID = 'bulaosong-skills'; 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // 系統狀態
+        // 系統變數
         let isAdmin = false; 
-        let currentMonth = new Date().toISOString().slice(0, 7); // 例如 '2026-10'
+        let currentMonth = new Date().toISOString().slice(0, 7); 
         let employees = [];
         let complaints = [];
         let rowsConfig = [];
         let evaluationDate = '';
         
-        // Firebase 監聽器註銷函式
+        // ====== GitHub 圖片基底網址設定 ======
+        // 這裡設定你的 GitHub raw 資料夾路徑。
+        // 請確保你的圖片命名為「姓名.jpg」，例如「黃詩涵.jpg」。
+        const GITHUB_RAW_URL = "https://raw.githubusercontent.com/YOUR_GITHUB_USER/YOUR_REPO/main/images/";
+
         let unsubConfig = null;
         let unsubEmployees = null;
         let unsubComplaints = null;
 
-        // 預設欄位設定 (包含新增的主管行政作業)
+        // 預設欄位設定 (包含新增的主管行政作業，隱藏功能 hidden 預設為 false)
         const defaultRowsConfig = [
-            { id: 'joinDate', label: '入職日', type: 'info', locked: true },
-            { id: 'tenure', label: '年資', type: 'info', locked: true },
-            { id: 'level', label: '職級', type: 'info', locked: true },
-            { id: 'totalStars', label: '🌟 星級總分', type: 'info', locked: true },
-            { id: 'cat_skill', label: '工作技能', type: 'category' },
-            { id: 'aDown', label: 'A下', type: 'rating' },
-            { id: 'aUp', label: 'A上', type: 'rating' },
-            { id: 'bZone', label: 'B區', type: 'rating' },
-            { id: 'assist', label: '輔櫃', type: 'rating' },
-            { id: 'cat_other', label: '其他項目', type: 'category' },
-            { id: 'drawCard', label: '拉牌', type: 'rating' },
-            { id: 'clean', label: '清潔', type: 'rating' },
-            { id: 'supplies', label: '備品', type: 'rating' },
-            { id: 'cat_soft', label: '軟實力', type: 'category' },
-            { id: 'member', label: '會員', type: 'rating' },
-            { id: 'review', label: '評論', type: 'rating' },
-            { id: 'sales', label: '銷售', type: 'rating' },
-            { id: 'attitude', label: '服務態度', type: 'rating' },
-            { id: 'cooperation', label: '配合度', type: 'rating' },
-            { id: 'attendance', label: '出勤', type: 'rating' },
-            { id: 'appearance', label: '儀態', type: 'rating' },
-            { id: 'cat_supervisor', label: '主管行政作業', type: 'category' },
-            { id: 'hr', label: '人事作業', type: 'rating' },
-            { id: 'general', label: '總務作業', type: 'rating' },
-            { id: 'report', label: '報表作業', type: 'rating' },
-            { id: 'interview', label: '訪談作業', type: 'rating' },
-            { id: 'order', label: '叫貨作業', type: 'rating' },
-            { id: 'marketing', label: '行銷作業', type: 'rating' },
-            { id: 'training', label: '人員訓練', type: 'rating' },
-            { id: 'zodiac', label: '十二生肖', type: 'rating' },
-            { id: 'actions', label: '資料操作', type: 'actions', locked: true }
+            { id: 'joinDate', label: '入職日', type: 'info', locked: true, hidden: false },
+            { id: 'tenure', label: '年資', type: 'info', locked: true, hidden: false },
+            { id: 'level', label: '職級', type: 'info', locked: true, hidden: false },
+            { id: 'totalStars', label: '🌟 星級總分', type: 'info', locked: true, hidden: false },
+            { id: 'cat_skill', label: '工作技能', type: 'category', hidden: false },
+            { id: 'aDown', label: 'A下', type: 'rating', hidden: false },
+            { id: 'aUp', label: 'A上', type: 'rating', hidden: false },
+            { id: 'bZone', label: 'B區', type: 'rating', hidden: false },
+            { id: 'assist', label: '輔櫃', type: 'rating', hidden: false },
+            { id: 'cat_other', label: '其他項目', type: 'category', hidden: false },
+            { id: 'drawCard', label: '拉牌', type: 'rating', hidden: false },
+            { id: 'clean', label: '清潔', type: 'rating', hidden: false },
+            { id: 'supplies', label: '備品', type: 'rating', hidden: false },
+            { id: 'cat_soft', label: '軟實力', type: 'category', hidden: false },
+            { id: 'member', label: '會員', type: 'rating', hidden: false },
+            { id: 'review', label: '評論', type: 'rating', hidden: false },
+            { id: 'sales', label: '銷售', type: 'rating', hidden: false },
+            { id: 'attitude', label: '服務態度', type: 'rating', hidden: false },
+            { id: 'cooperation', label: '配合度', type: 'rating', hidden: false },
+            { id: 'attendance', label: '出勤', type: 'rating', hidden: false },
+            { id: 'appearance', label: '儀態', type: 'rating', hidden: false },
+            { id: 'cat_supervisor', label: '主管行政作業', type: 'category', hidden: false },
+            { id: 'hr', label: '人事作業', type: 'rating', hidden: false },
+            { id: 'general', label: '總務作業', type: 'rating', hidden: false },
+            { id: 'report', label: '報表作業', type: 'rating', hidden: false },
+            { id: 'interview', label: '訪談作業', type: 'rating', hidden: false },
+            { id: 'order', label: '叫貨作業', type: 'rating', hidden: false },
+            { id: 'marketing', label: '行銷作業', type: 'rating', hidden: false },
+            { id: 'training', label: '人員訓練', type: 'rating', hidden: false },
+            { id: 'zodiac', label: '十二生肖', type: 'rating', hidden: false },
+            { id: 'actions', label: '資料操作', type: 'actions', locked: true, hidden: false }
         ];
 
-        // 預設人員 
+        // 預設人員 (已替換為您提供的 14 位人員與預設職級)
         const defaultEmployees = [
             { id: 'e_01', name: '黃詩涵', level: '店長', joinDate: '2020-01-01', status: 'active', ratings: {} },
             { id: 'e_02', name: '劉芸汝', level: '主任', joinDate: '2021-01-01', status: 'active', ratings: {} },
@@ -437,6 +463,7 @@
             loadDataForMonth(currentMonth);
         });
 
+        // 匿名登入保護 (確保 Firebase 讀寫安全)
         signInAnonymously(auth).then(() => {
             console.log("Firebase 匿名連線成功");
             loadDataForMonth(currentMonth);
@@ -446,24 +473,25 @@
         });
 
         function loadDataForMonth(monthStr) {
-            // 清除舊監聽
+            // 清除舊月份的監聽器
             if(unsubConfig) unsubConfig();
             if(unsubEmployees) unsubEmployees();
             if(unsubComplaints) unsubComplaints();
             
             document.getElementById('currentMonthDisplay').innerText = monthStr;
             
-            // 獨立的月份路徑
             const colConfig = collection(db, 'artifacts', APP_ID, 'public', 'data', 'config_' + monthStr);
             const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees_' + monthStr);
             const colComplaints = collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints_' + monthStr);
             
-            // 1. 監聽設定與中繼資料 (包含評核日期)
+            // 1. 監聽欄位設定
             unsubConfig = onSnapshot(colConfig, (snapshot) => {
                 let hasRows = false;
                 snapshot.forEach(doc => {
                     if(doc.id === 'rows') {
                         rowsConfig = doc.data().data;
+                        // 確保所有 row 都有 hidden 屬性
+                        rowsConfig.forEach(r => { if(r.hidden === undefined) r.hidden = false; });
                         hasRows = true;
                     }
                     if(doc.id === 'metadata') {
@@ -472,7 +500,6 @@
                     }
                 });
                 
-                // 初次使用或新月份無資料，寫入預設
                 if(!hasRows) {
                     rowsConfig = defaultRowsConfig;
                     setDoc(doc(colConfig, 'rows'), { data: rowsConfig });
@@ -480,12 +507,12 @@
                 
                 renderEmployeeTable();
                 if(isAdmin) renderColumnsManageTable();
-            }, (error) => console.error(error));
+            });
 
             // 2. 監聽員工資料
             unsubEmployees = onSnapshot(colEmployees, (snapshot) => {
                 if(snapshot.empty) {
-                    // 若新月份為空，直接將預設人員寫入該月份
+                    // 自動複製預設名單至新月份
                     defaultEmployees.forEach(emp => {
                         setDoc(doc(colEmployees, emp.id), emp);
                     });
@@ -503,17 +530,16 @@
                     renderEmployeeTable();
                     updateComplaintEmployeeSelect();
                 }
-            }, (error) => console.error(error));
+            });
 
             // 3. 監聽客訴資料
             unsubComplaints = onSnapshot(colComplaints, (snapshot) => {
                 complaints = [];
                 snapshot.forEach(docSnap => { complaints.push({ id: docSnap.id, ...docSnap.data() }); });
                 renderComplaints();
-            }, (error) => console.error(error));
+            });
         }
 
-        // 評核日期儲存邏輯
         document.getElementById('evaluationDate').addEventListener('change', (e) => {
             if(!isAdmin) return;
             const newDate = e.target.value;
@@ -549,6 +575,14 @@
             if (years > 0) result += `${years}年`;
             if (months > 0) result += `${months}個月`;
             return result;
+        }
+
+        function getEmployeeImgUrl(empName) {
+            // 動態產生 GitHub 圖片網址
+            return `${GITHUB_RAW_URL}${encodeURIComponent(empName)}.jpg`;
+        }
+        function getFallbackImgUrl(empName) {
+            return `https://placehold.co/60x60/2c4a3b/ffffff?text=${encodeURIComponent(empName.charAt(0))}`;
         }
 
         function generateStarRatingHTML(empId, category, rating) {
@@ -610,12 +644,13 @@
                 container.nextElementSibling.innerText = finalRating.toFixed(1);
                 updateStarVisuals(container, finalRating);
                 
+                // 同步更新畫面上方與下方的總分顯示
                 const totalCell = document.getElementById(`total_${empId}`);
                 if(totalCell) totalCell.innerHTML = `<span class="text-secondary font-bold text-sm bg-yellow-50 px-2 py-1 rounded border border-yellow-200 shadow-sm">${newTotal.toFixed(1)}</span>`;
                 const bottomTotalCell = document.getElementById(`btm_total_${empId}`);
                 if(bottomTotalCell) bottomTotalCell.innerHTML = `<span class="text-secondary font-bold text-sm bg-yellow-50 px-3 py-1 rounded border border-yellow-200 shadow-sm">${newTotal.toFixed(1)}</span>`;
                 
-                // 儲存至當月表
+                // 儲存至當月雲端表
                 const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees_' + currentMonth);
                 updateDoc(doc(colEmployees, empId), { ratings: emp.ratings });
             }
@@ -630,14 +665,13 @@
         }
 
         function renderEmployeeTable() {
-            const filterText = document.getElementById('searchInput').value;
+            const filterText = document.getElementById('searchInput').value.toLowerCase();
             const showResigned = document.getElementById('showResignedCheckbox').checked;
             const table = document.getElementById('employeeTable');
             const emptyState = document.getElementById('emptyState');
             table.innerHTML = '';
             
-            const lowerFilter = filterText.toLowerCase();
-            let filteredEmp = employees.filter(emp => emp.name.toLowerCase().includes(lowerFilter));
+            let filteredEmp = employees.filter(emp => emp.name.toLowerCase().includes(filterText));
             if (!showResigned) { filteredEmp = filteredEmp.filter(emp => emp.status !== 'resigned'); }
 
             // 排序：職級 > 星級總數
@@ -649,7 +683,6 @@
                 return (b.totalStars || 0) - (a.totalStars || 0);
             });
             
-            // 存入全域供列印使用
             window.currentFilteredEmp = filteredEmp;
 
             if (filteredEmp.length === 0) {
@@ -658,25 +691,31 @@
             }
             emptyState.classList.add('hidden'); emptyState.classList.remove('flex');
 
+            // 篩選出目前「沒有被隱藏」的列設定
+            const visibleRows = rowsConfig.filter(r => !r.hidden);
+
+            // 第一列：表頭與員工照片/姓名
             let thead = `<thead><tr><th class="sticky top-0 left-0 bg-primary text-white z-30 w-24 border-b border-emerald-900 p-2 align-bottom shadow-[2px_2px_5px_rgba(0,0,0,0.2)] tracking-widest text-center text-xs">項目 \\ 員工</th>`;
             filteredEmp.forEach(emp => {
-                const photoSrc = emp.photo || `https://placehold.co/60x60/2c4a3b/ffffff?text=${emp.name.charAt(0)}`;
+                const imgUrl = getEmployeeImgUrl(emp.name);
+                const fallbackUrl = getFallbackImgUrl(emp.name);
                 const resignedClass = emp.status === 'resigned' ? 'is-resigned bg-gray-100' : 'bg-white';
                 const resignedBadge = emp.status === 'resigned' ? `<div class="absolute top-0 right-0 bg-red-600 text-white text-[9px] px-1 rounded-bl">離職</div>` : '';
                 thead += `
                     <th class="sticky top-0 ${resignedClass} border-b border-gray-300 z-20 min-w-[90px] p-2 text-center shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-r border-gray-200 relative">
                         ${resignedBadge}
-                        <img src="${photoSrc}" alt="${emp.name}" class="w-10 h-10 rounded-full mx-auto mb-1 border-2 border-gray-200 object-cover shadow-sm">
+                        <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}'" alt="${emp.name}" class="w-12 h-12 rounded-full mx-auto mb-1 border-2 border-gray-200 object-cover shadow-sm bg-gray-50">
                         <div class="font-bold text-gray-800 text-sm leading-tight">${emp.name}</div>
                     </th>`;
             });
             thead += `</tr></thead><tbody>`;
             
-            rowsConfig.forEach((row, rowIndex) => {
+            // 繪製非隱藏的列
+            visibleRows.forEach((row, rowIndex) => {
                 const bgClass = rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50/50';
 
                 if (row.type === 'category') {
-                    thead += `<tr><th class="sticky left-0 bg-emerald-800 text-white z-10 w-24 px-2 py-1 text-center font-bold border-r border-gray-300 shadow-[2px_0_4px_rgba(0,0,0,0.1)] text-xs tracking-widest">${row.label}</th><td colspan="${filteredEmp.length}" class="bg-emerald-50/50 border-r border-gray-100 p-0 shadow-inner"></td></tr>`;
+                    thead += `<tr><th class="sticky left-0 bg-emerald-800 text-white z-10 w-24 px-2 py-1.5 text-center font-bold border-r border-gray-300 shadow-[2px_0_4px_rgba(0,0,0,0.1)] text-xs tracking-widest">${row.label}</th><td colspan="${filteredEmp.length}" class="bg-emerald-50/50 border-r border-gray-100 p-0 shadow-inner"></td></tr>`;
                     return;
                 }
 
@@ -702,7 +741,7 @@
                         thead += generateStarRatingHTML(emp.id, row.id, emp.ratings[row.id]);
                     } else if (row.type === 'actions') {
                         if (isAdmin) {
-                            thead += `<button onclick="editEmployee('${emp.id}')" class="text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-2 py-1 bg-blue-50 rounded transition-colors text-[10px] font-medium border border-blue-200"><i class="fa-solid fa-pen"></i></button>`;
+                            thead += `<button onclick="editEmployee('${emp.id}')" class="text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-3 py-1 bg-blue-50 rounded transition-colors text-xs font-bold border border-blue-200"><i class="fa-solid fa-pen mr-1"></i>編輯</button>`;
                         } else {
                             thead += `<span class="text-[10px] text-gray-400"><i class="fa-solid fa-lock"></i> 唯讀</span>`;
                         }
@@ -712,7 +751,7 @@
                 thead += `</tr>`;
             });
             
-            // 最底部的星級總計列
+            // 底部星級總計列
             thead += `<tr><th class="sticky left-0 bg-amber-100 text-amber-800 z-10 w-24 px-2 py-3 text-center font-bold border-r border-amber-300 shadow-[2px_0_4px_rgba(0,0,0,0.1)] text-xs tracking-widest border-t-2 border-amber-400">總計</th>`;
             filteredEmp.forEach(emp => {
                 thead += `<td class="px-2 py-3 border-r border-amber-200 text-center align-middle bg-amber-50/30 border-t-2 border-amber-400" id="btm_total_${emp.id}">
@@ -751,17 +790,21 @@
                     if (emp) empName = emp.name;
                 }
                 const statusHtml = comp.status === 'resolved' 
-                    ? '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full"><i class="fa-solid fa-check mr-1"></i>已結案</span>'
-                    : '<span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full"><i class="fa-solid fa-clock mr-1"></i>處理中</span>';
+                    ? '<span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full border border-green-200"><i class="fa-solid fa-check mr-1"></i>已結案</span>'
+                    : '<span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-full border border-red-200"><i class="fa-solid fa-clock mr-1"></i>處理中</span>';
                 
-                let actionHtml = isAdmin ? `<button onclick="toggleComplaintStatus('${comp.id}')" class="text-blue-500 hover:text-blue-700 text-xs mr-2">切換狀態</button>
-                        <button onclick="deleteComplaint('${comp.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash text-xs"></i></button>` : `<span class="text-[10px] text-gray-400"><i class="fa-solid fa-lock"></i></span>`;
+                let actionHtml = isAdmin ? `
+                        <div class="flex justify-center gap-2">
+                            <button onclick="toggleComplaintStatus('${comp.id}')" class="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-1 rounded transition-colors" title="切換狀態"><i class="fa-solid fa-rotate"></i></button>
+                            <button onclick="deleteComplaint('${comp.id}')" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors" title="刪除"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        ` : `<span class="text-[10px] text-gray-400"><i class="fa-solid fa-lock"></i></span>`;
 
-                tbody.innerHTML += `<tr class="border-b border-gray-100 hover:bg-red-50">
+                tbody.innerHTML += `<tr class="border-b border-gray-100 hover:bg-red-50 transition-colors">
                         <td class="px-4 py-2">${comp.date}</td>
-                        <td class="px-4 py-2 font-medium">${empName}</td>
-                        <td class="px-4 py-2"><span class="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded">${comp.type}</span></td>
-                        <td class="px-4 py-2 max-w-md truncate" title="${comp.desc}">${comp.desc}</td>
+                        <td class="px-4 py-2 font-bold text-gray-800">${empName}</td>
+                        <td class="px-4 py-2"><span class="px-2 py-1 bg-gray-200 text-gray-700 text-[10px] rounded">${comp.type}</span></td>
+                        <td class="px-4 py-2 max-w-md truncate text-gray-600" title="${comp.desc}">${comp.desc}</td>
                         <td class="px-4 py-2">${statusHtml}</td>
                         <td class="px-4 py-2 text-center">${actionHtml}</td>
                     </tr>`;
@@ -790,45 +833,48 @@
 
         window.deleteComplaint = function(id) { deleteDoc(doc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'complaints_' + currentMonth), id)); };
 
-        // 產出一頁式總覽 (列印用)
-        document.getElementById('printOverviewBtn').addEventListener('click', () => {
+        document.getElementById('screenshotOverviewBtn').addEventListener('click', () => {
             if(!window.currentFilteredEmp || window.currentFilteredEmp.length === 0) return;
             
-            document.getElementById('printMonth').innerText = currentMonth;
-            document.getElementById('printEvalDate').innerText = '評核日期：' + (document.getElementById('evaluationDate').value || '尚未設定');
+            document.getElementById('screenshotMonth').innerText = currentMonth;
+            document.getElementById('screenshotEvalDate').innerText = '評核日期：' + (document.getElementById('evaluationDate').value || '尚未設定');
             
-            const printContent = document.getElementById('printContent');
+            const printContent = document.getElementById('screenshotContent');
             printContent.innerHTML = '';
             
+            const visibleRows = rowsConfig.filter(r => !r.hidden);
+            
             window.currentFilteredEmp.forEach(emp => {
+                const imgUrl = getEmployeeImgUrl(emp.name);
+                const fallbackUrl = getFallbackImgUrl(emp.name);
                 let cardHtml = `
-                <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 shadow-sm break-inside-avoid">
-                    <div class="flex items-center gap-3 mb-3 border-b border-gray-200 pb-2">
-                        <img src="${emp.photo || `https://placehold.co/60x60/2c4a3b/ffffff?text=${emp.name.charAt(0)}`}" class="w-12 h-12 rounded-full border border-gray-300">
+                <div class="border border-gray-300 rounded-xl p-4 bg-white shadow-md">
+                    <div class="flex items-center gap-3 mb-3 border-b border-gray-200 pb-3">
+                        <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}'" class="w-14 h-14 rounded-full border-2 border-gray-200 object-cover bg-gray-50">
                         <div>
-                            <div class="font-bold text-lg text-gray-800">${emp.name}</div>
-                            <div class="text-xs text-gray-600 bg-amber-100 px-2 py-0.5 rounded inline-block">${emp.level}</div>
+                            <div class="font-bold text-xl text-gray-800">${emp.name}</div>
+                            <div class="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded inline-block mt-0.5">${emp.level}</div>
                         </div>
-                        <div class="ml-auto text-center">
-                            <div class="text-[10px] text-gray-500">星級總計</div>
-                            <div class="font-bold text-lg text-secondary">${(emp.totalStars || 0).toFixed(1)}</div>
+                        <div class="ml-auto text-center bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">
+                            <div class="text-[10px] text-gray-500 font-bold mb-0.5">總計</div>
+                            <div class="font-bold text-lg text-secondary leading-none">${(emp.totalStars || 0).toFixed(1)}</div>
                         </div>
                     </div>
                     <table class="w-full text-xs text-left">
                         <tbody>`;
                 
-                rowsConfig.forEach(row => {
+                visibleRows.forEach(row => {
                     if (row.type === 'category') {
-                        cardHtml += `<tr><td colspan="2" class="font-bold text-primary pt-2 pb-1 border-b border-emerald-100">${row.label}</td></tr>`;
+                        cardHtml += `<tr><td colspan="2" class="font-bold text-primary pt-3 pb-1 border-b border-emerald-100 text-[11px] tracking-wider">${row.label}</td></tr>`;
                     } else if (row.type === 'rating') {
                         let r = emp.ratings[row.id] || 0;
                         let stars = '';
                         for(let i=1; i<=5; i++) {
                             if(r >= i) stars += '<i class="fa-solid fa-star text-secondary"></i>';
                             else if(r === i-0.5) stars += '<i class="fa-solid fa-star-half-stroke text-secondary"></i>';
-                            else stars += '<i class="fa-regular fa-star text-gray-300"></i>';
+                            else stars += '<i class="fa-regular fa-star text-gray-200"></i>';
                         }
-                        cardHtml += `<tr><td class="py-1 text-gray-600 w-24">${row.label}</td><td class="py-1">${stars} <span class="text-gray-400 ml-1 text-[10px]">${r.toFixed(1)}</span></td></tr>`;
+                        cardHtml += `<tr class="hover:bg-gray-50"><td class="py-1.5 text-gray-600 font-medium w-24 pl-1">${row.label}</td><td class="py-1.5">${stars} <span class="text-gray-400 ml-1 text-[10px] w-6 inline-block text-right">${r.toFixed(1)}</span></td></tr>`;
                     }
                 });
                 
@@ -836,12 +882,11 @@
                 printContent.innerHTML += cardHtml;
             });
             
-            document.getElementById('printContainer').classList.remove('hidden');
-            setTimeout(() => { window.print(); }, 500); // 給予渲染時間後呼叫列印
+            document.getElementById('screenshotContainer').classList.add('active');
         });
 
-        window.closePrintView = function() {
-            document.getElementById('printContainer').classList.add('hidden');
+        window.closeScreenshotView = function() {
+            document.getElementById('screenshotContainer').classList.remove('active');
         };
 
         const authModal = document.getElementById('authModal');
@@ -884,7 +929,6 @@
             renderEmployeeTable(); renderComplaints();
         }
 
-        // 員工表單
         const employeeModal = document.getElementById('employeeModal');
         const employeeForm = document.getElementById('employeeForm');
 
@@ -900,9 +944,10 @@
             e.preventDefault();
             const editId = document.getElementById('editEmpId').value;
             const empData = {
-                name: document.getElementById('empName').value, status: document.getElementById('empStatus').value,
-                joinDate: document.getElementById('empJoinDate').value, level: document.getElementById('empLevel').value,
-                photo: document.getElementById('empPhotoUrl').value
+                name: document.getElementById('empName').value.trim(), 
+                status: document.getElementById('empStatus').value,
+                joinDate: document.getElementById('empJoinDate').value, 
+                level: document.getElementById('empLevel').value
             };
             const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees_' + currentMonth);
 
@@ -920,11 +965,10 @@
             const emp = employees.find(e => e.id === id); if (!emp) return;
             document.getElementById('editEmpId').value = emp.id; document.getElementById('empName').value = emp.name;
             document.getElementById('empStatus').value = emp.status || 'active'; document.getElementById('empJoinDate').value = emp.joinDate;
-            document.getElementById('empLevel').value = emp.level; document.getElementById('empPhotoUrl').value = emp.photo || '';
+            document.getElementById('empLevel').value = emp.level;
             document.getElementById('modalTitle').innerText = '編輯資料'; employeeModal.classList.add('active');
         };
 
-        // 欄位管理
         document.getElementById('manageColumnsBtn').addEventListener('click', () => {
             renderColumnsManageTable(); document.getElementById('manageColumnsModal').classList.add('active');
         });
@@ -935,27 +979,85 @@
             const tbody = document.getElementById('columnsManageBody'); tbody.innerHTML = '';
             rowsConfig.forEach((row, index) => {
                 const tr = document.createElement('tr');
-                tr.className = `border-b border-gray-100 ${row.locked ? 'bg-gray-50' : 'hover:bg-emerald-50'}`;
-                let typeBadge = row.type === 'info' ? '<span class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-[10px]">基本資料</span>'
-                    : row.type === 'category' ? '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[10px]">分類</span>'
-                    : row.type === 'rating' ? '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px]">評分項目</span>'
-                    : '<span class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-[10px]">操作列</span>';
+                tr.className = `${row.locked ? 'bg-gray-50' : 'hover:bg-emerald-50'} transition-colors`;
+                
+                // 狀態標籤
+                let statusBadge = row.hidden 
+                    ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold border border-red-200"><i class="fa-solid fa-eye-slash mr-1"></i>已隱藏</span>'
+                    : '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold border border-green-200"><i class="fa-solid fa-eye mr-1"></i>顯示中</span>';
+                if(row.locked) statusBadge = '<span class="bg-gray-200 text-gray-500 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-300"><i class="fa-solid fa-lock mr-1"></i>鎖定</span>';
 
-                tr.innerHTML = `<td class="px-4 py-2">${typeBadge}</td>
-                    <td class="px-4 py-2">${row.locked ? `<span class="text-gray-500 font-medium">${row.label} <i class="fa-solid fa-lock text-[10px] ml-1"></i></span>` : `<input type="text" value="${row.label}" onchange="updateRowLabel(${index}, this.value)" class="border-b border-gray-300 focus:border-primary focus:outline-none bg-transparent w-full text-sm font-medium text-gray-800">`}</td>
-                    <td class="px-4 py-2 text-center">${row.locked ? `<span class="text-xs text-gray-400">已鎖定</span>` : `<button onclick="deleteRow(${index})" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="fa-solid fa-trash"></i></button>`}</td>`;
+                // 類型標籤
+                let typeBadge = row.type === 'info' ? '<span class="text-gray-600 font-bold text-[11px]">基本資料</span>'
+                    : row.type === 'category' ? '<span class="text-purple-600 font-bold text-[11px]">大分類</span>'
+                    : row.type === 'rating' ? '<span class="text-blue-600 font-bold text-[11px]">評分項目</span>'
+                    : '<span class="text-gray-500 font-bold text-[11px]">系統操作</span>';
+
+                // 操作按鈕
+                let actionsHtml = '';
+                if(!row.locked) {
+                    const hideBtnClass = row.hidden ? "text-green-600 hover:bg-green-100" : "text-amber-600 hover:bg-amber-100";
+                    const hideBtnText = row.hidden ? '<i class="fa-solid fa-eye mr-1"></i>回復' : '<i class="fa-solid fa-eye-slash mr-1"></i>隱藏';
+                    
+                    actionsHtml = `
+                        <div class="flex justify-center gap-2">
+                            <button onclick="toggleRowVisibility(${index})" class="${hideBtnClass} px-2 py-1 rounded transition-colors text-xs font-bold border border-transparent hover:border-current">${hideBtnText}</button>
+                            <button onclick="requestDeleteRow(${index})" class="text-red-600 hover:bg-red-100 px-2 py-1 rounded transition-colors text-xs font-bold border border-transparent hover:border-red-300"><i class="fa-solid fa-trash mr-1"></i>刪除</button>
+                        </div>
+                    `;
+                } else {
+                    actionsHtml = `<span class="text-xs text-gray-400 font-medium">系統保留項目</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3">${statusBadge}</td>
+                    <td class="px-4 py-3">${typeBadge}</td>
+                    <td class="px-4 py-3">${row.locked ? `<span class="text-gray-500 font-medium">${row.label}</span>` : `<input type="text" value="${row.label}" onchange="updateRowLabel(${index}, this.value)" class="border-b border-gray-300 focus:border-primary focus:outline-none bg-transparent w-full text-sm font-bold text-gray-800 py-1">`}</td>
+                    <td class="px-4 py-3 text-center">${actionsHtml}</td>`;
                 tbody.appendChild(tr);
             });
         }
 
         window.updateRowLabel = function(index, newLabel) { if (newLabel.trim() === '') return; rowsConfig[index].label = newLabel.trim(); saveConfigToCloud(); };
-        window.deleteRow = function(index) { if (rowsConfig[index].locked) return; rowsConfig.splice(index, 1); saveConfigToCloud(); };
+        
+        window.toggleRowVisibility = function(index) {
+            if (rowsConfig[index].locked) return;
+            rowsConfig[index].hidden = !rowsConfig[index].hidden;
+            saveConfigToCloud();
+            renderColumnsManageTable();
+        };
+
+        window.requestDeleteRow = function(index) {
+            if (rowsConfig[index].locked) return;
+            document.getElementById('deleteColIndex').value = index;
+            document.getElementById('deleteColPassword').value = '';
+            document.getElementById('deleteColModal').classList.add('active');
+            document.getElementById('deleteColPassword').focus();
+        };
+
+        window.confirmDeleteRow = function() {
+            const pwd = document.getElementById('deleteColPassword').value;
+            if(pwd === '8888') {
+                const index = document.getElementById('deleteColIndex').value;
+                rowsConfig.splice(index, 1); 
+                saveConfigToCloud();
+                document.getElementById('deleteColModal').classList.remove('active');
+                renderColumnsManageTable();
+                showMessage('刪除成功', '該欄位已徹底刪除。');
+            } else {
+                showMessage('驗證失敗', '密碼錯誤，拒絕刪除。', 'error');
+                document.getElementById('deleteColPassword').value = '';
+            }
+        };
+
         window.addNewRow = function(type) {
-            const label = prompt(`請輸入新${type === 'category' ? '分類標題' : '評分項目'}的名稱：`);
+            // 使用內建 prompt 快速取得名稱
+            const label = window.prompt(`請輸入新${type === 'category' ? '分類標題' : '評分項目'}的名稱：`);
             if (!label || label.trim() === '') return;
             const insertIndex = rowsConfig.findIndex(r => r.type === 'actions');
-            rowsConfig.splice(insertIndex !== -1 ? insertIndex : rowsConfig.length, 0, { id: (type === 'rating' ? 'rating_' : 'cat_') + Date.now(), label: label.trim(), type: type });
+            rowsConfig.splice(insertIndex !== -1 ? insertIndex : rowsConfig.length, 0, { id: (type === 'rating' ? 'rating_' : 'cat_') + Date.now(), label: label.trim(), type: type, hidden: false });
             saveConfigToCloud();
+            renderColumnsManageTable();
         };
     </script>
 </body>
