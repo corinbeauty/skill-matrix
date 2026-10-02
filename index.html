@@ -73,7 +73,6 @@
 </head>
 <body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden relative">
 
-    <!-- 頂部跑馬燈宣示 -->
     <div class="bg-[#fdfaf1] text-center py-1.5 px-4 border-b border-amber-200 shrink-0 z-40">
         <h2 class="text-sm font-bold text-gray-800 tracking-widest">此評核由店長填寫 總監審閱</h2>
         <p class="text-[11px] text-gray-500 mt-0.5">評核會依據每月執行狀況調整，讓人員確認學習及改善方向，人才培育升遷依據</p>
@@ -237,7 +236,8 @@
                 <h1 class="text-xl md:text-2xl font-bold text-primary tracking-widest">不老松足湯 中清店</h1>
                 <h2 class="text-md md:text-lg font-bold text-gray-700 mt-1">員工工作技能總覽 - <span id="screenshotMonth"></span></h2>
             </div>
-            <!-- 置中對齊宣示文字並保留右側安全邊距以防被按鈕遮擋 -->
+            
+            <!-- 將文字改為置中 (text-center)，並用 flex-grow 佔據中間空間，同時在右側留下 pr-32 避免被按鈕遮擋 -->
             <div class="text-center text-[10px] md:text-xs text-gray-500 flex-grow px-2 md:px-8 pr-28 md:pr-32">
                 <p class="font-bold text-gray-700 text-[11px] md:text-sm mb-0.5">此評核由店長填寫 總監審閱</p>
                 <p class="my-0.5 leading-tight">評核會依據每月執行狀況調整，讓人員確認學習及改善方向，人才培育升遷依據</p>
@@ -287,11 +287,10 @@
                             </select>
                         </div>
                     </div>
-                    <!-- 新增：自訂圖片檔名欄位 -->
                     <div class="mb-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">自訂圖片檔名 (GitHub 圖片指定)</label>
                         <input type="text" id="empImage" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary" placeholder="例如: 1000038727.jpg">
-                        <p class="text-[11px] text-gray-500 mt-1">若留空，系統預設以「<strong class="text-primary">姓名.jpg</strong>」自動抓取。<br>若人員名字與圖檔不符，請輸入完整檔名 (含副檔名，如 .jpg)。</p>
+                        <p class="text-[11px] text-gray-500 mt-1">若留空，系統預設以「<strong class="text-primary">姓名.jpg</strong>」自動去 GitHub 抓取。<br>若人員名字與檔名不符，請輸入完整檔名 (含 .jpg)。</p>
                     </div>
                 </form>
             </div>
@@ -323,7 +322,7 @@
             <div class="p-5 text-center">
                 <i class="fa-solid fa-triangle-exclamation text-red-500 text-4xl mb-3"></i>
                 <h3 class="font-bold text-lg text-gray-800 mb-2">確認刪除欄位？</h3>
-                <p class="text-sm text-gray-600 mb-4">刪除後將無法復原相關評分紀錄。<br>請輸入權限密碼 (8888) 確認刪除：</p>
+                <p class="text-sm text-gray-600 mb-4">刪除後將無法復原相關評分紀錄。<br>請輸入權限密碼確認刪除：</p>
                 <input type="hidden" id="deleteColIndex" value="">
                 <input type="password" id="deleteColPassword" class="w-full border border-gray-300 rounded p-2 text-center text-lg tracking-widest focus:ring-red-500 focus:border-red-500 mb-4" placeholder="輸入密碼">
                 <div class="flex gap-2 justify-center">
@@ -376,7 +375,7 @@
                 <form id="sysSettingsForm">
                     <div class="mb-4">
                         <label class="block text-sm font-bold text-gray-700 mb-1">GitHub 圖片資料夾根目錄網址</label>
-                        <input type="text" id="settingGithubUrl" class="w-full border border-gray-300 rounded-md p-2 focus:ring-gray-500 focus:border-gray-500 text-sm" placeholder="https://raw.githubusercontent.com/帳號/專案/main/資料夾/">
+                        <input type="text" id="settingGithubUrl" class="w-full border border-gray-300 rounded-md p-2 focus:ring-gray-500 focus:border-gray-500 text-sm" placeholder="https://raw.githubusercontent.com/corinbeauty/skill-matrix/main/">
                         <p class="text-[11px] text-gray-500 mt-2">
                             請貼上 GitHub Raw 的資料夾網址，務必以 <strong class="text-red-500">/</strong> 結尾。<br>
                             系統會自動在後方補上員工對應的檔名。
@@ -431,14 +430,14 @@
         let rowsConfig = [];
         let evaluationDate = '';
         
-        // ====== 全域設定 ======
-        let globalGithubUrl = "https://raw.githubusercontent.com/YOUR_GITHUB_USER/YOUR_REPO/main/images/";
+        // ====== 全域設定：已預設為你要求的 GitHub 路徑 ======
+        let globalGithubUrl = "https://raw.githubusercontent.com/corinbeauty/skill-matrix/main/";
 
         let unsubConfig = null;
         let unsubEmployees = null;
         let unsubComplaints = null;
 
-        // 預設欄位設定 (包含主管行政作業，隱藏功能 hidden 預設為 false)
+        // 預設欄位設定
         const defaultRowsConfig = [
             { id: 'joinDate', label: '入職日', type: 'info', locked: true, hidden: false },
             { id: 'tenure', label: '年資', type: 'info', locked: true, hidden: false },
