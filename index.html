@@ -52,16 +52,16 @@
         .is-resigned { opacity: 0.6; filter: grayscale(0.8); }
         .is-resigned:hover { opacity: 0.9; filter: grayscale(0.2); }
 
-        /* 截圖模式排版 */
+        /* 截圖模式排版 (Fixed) */
         #screenshotContainer { 
             display: none; 
-            position: fixed; /* 改為 fixed，讓它成為獨立的滿版覆蓋層 */
+            position: fixed;
             left: 0; top: 0; right: 0; bottom: 0;
             width: 100%; 
-            height: 100vh; /* 鎖定與螢幕等高 */
+            height: 100vh;
             background: #fdfaf1; 
             z-index: 100;
-            overflow-y: auto; /* 開啟自身的上下捲軸 */
+            overflow-y: auto;
             overflow-x: hidden;
         }
         #screenshotContainer.active { display: block; }
@@ -263,7 +263,6 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">姓名 <span class="text-red-500">*</span></label>
                             <input type="text" id="empName" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
-                            <p class="text-[10px] text-gray-500 mt-1">圖片會自動從雲端抓取 (姓名.jpg)</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">在職狀態</label>
@@ -287,6 +286,12 @@
                                 <option value="櫃台">櫃台</option>
                             </select>
                         </div>
+                    </div>
+                    <!-- 新增：自訂圖片檔名欄位 -->
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">自訂圖片檔名 (GitHub 圖片指定)</label>
+                        <input type="text" id="empImage" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary" placeholder="例如: 1000038727.jpg">
+                        <p class="text-[11px] text-gray-500 mt-1">若留空，系統預設以「<strong class="text-primary">姓名.jpg</strong>」自動抓取。<br>若人員名字與圖檔不符，請輸入完整檔名 (含副檔名，如 .jpg)。</p>
                     </div>
                 </form>
             </div>
@@ -374,7 +379,7 @@
                         <input type="text" id="settingGithubUrl" class="w-full border border-gray-300 rounded-md p-2 focus:ring-gray-500 focus:border-gray-500 text-sm" placeholder="https://raw.githubusercontent.com/帳號/專案/main/資料夾/">
                         <p class="text-[11px] text-gray-500 mt-2">
                             請貼上 GitHub Raw 的資料夾網址，務必以 <strong class="text-red-500">/</strong> 結尾。<br>
-                            系統會自動在後方補上「<strong class="text-primary">員工姓名.jpg</strong>」。
+                            系統會自動在後方補上員工對應的檔名。
                         </p>
                     </div>
                 </form>
@@ -433,7 +438,7 @@
         let unsubEmployees = null;
         let unsubComplaints = null;
 
-        // 預設欄位設定 (包含新增的主管行政作業，隱藏功能 hidden 預設為 false)
+        // 預設欄位設定 (包含主管行政作業，隱藏功能 hidden 預設為 false)
         const defaultRowsConfig = [
             { id: 'joinDate', label: '入職日', type: 'info', locked: true, hidden: false },
             { id: 'tenure', label: '年資', type: 'info', locked: true, hidden: false },
@@ -470,20 +475,20 @@
 
         // 預設人員名單
         const defaultEmployees = [
-            { id: 'e_01', name: '黃詩涵', level: '店長', joinDate: '2020-01-01', status: 'active', ratings: {} },
-            { id: 'e_02', name: '劉芸汝', level: '主任', joinDate: '2021-01-01', status: 'active', ratings: {} },
-            { id: 'e_03', name: '賴彥廷', level: '主任', joinDate: '2021-06-01', status: 'active', ratings: {} },
-            { id: 'e_04', name: '呂佳霖', level: '領航員', joinDate: '2022-01-01', status: 'active', ratings: {} },
-            { id: 'e_05', name: '莊秉豐', level: '領航員', joinDate: '2022-05-01', status: 'active', ratings: {} },
-            { id: 'e_06', name: '高鈺雯', level: '領航員', joinDate: '2022-08-01', status: 'active', ratings: {} },
-            { id: 'e_07', name: '賴信吉', level: '櫃台', joinDate: '2023-01-01', status: 'active', ratings: {} },
-            { id: 'e_08', name: '黃郁心', level: '櫃台', joinDate: '2023-03-01', status: 'active', ratings: {} },
-            { id: 'e_09', name: '柏政權', level: '櫃台', joinDate: '2023-05-01', status: 'active', ratings: {} },
-            { id: 'e_10', name: '陳秀如', level: '櫃台', joinDate: '2023-08-01', status: 'active', ratings: {} },
-            { id: 'e_11', name: '紀懿芯', level: '櫃台', joinDate: '2024-01-01', status: 'active', ratings: {} },
-            { id: 'e_12', name: '梁宇翔', level: '櫃台', joinDate: '2024-04-01', status: 'active', ratings: {} },
-            { id: 'e_13', name: '王楷翔', level: '櫃台', joinDate: '2024-07-01', status: 'active', ratings: {} },
-            { id: 'e_14', name: '施孟均', level: '櫃台', joinDate: '2024-10-01', status: 'active', ratings: {} }
+            { id: 'e_01', name: '黃詩涵', level: '店長', joinDate: '2020-01-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_02', name: '劉芸汝', level: '主任', joinDate: '2021-01-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_03', name: '賴彥廷', level: '主任', joinDate: '2021-06-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_04', name: '呂佳霖', level: '領航員', joinDate: '2022-01-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_05', name: '莊秉豐', level: '領航員', joinDate: '2022-05-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_06', name: '高鈺雯', level: '領航員', joinDate: '2022-08-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_07', name: '賴信吉', level: '櫃台', joinDate: '2023-01-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_08', name: '黃郁心', level: '櫃台', joinDate: '2023-03-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_09', name: '柏政權', level: '櫃台', joinDate: '2023-05-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_10', name: '陳秀如', level: '櫃台', joinDate: '2023-08-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_11', name: '紀懿芯', level: '櫃台', joinDate: '2024-01-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_12', name: '梁宇翔', level: '櫃台', joinDate: '2024-04-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_13', name: '王楷翔', level: '櫃台', joinDate: '2024-07-01', status: 'active', imageFilename: '', ratings: {} },
+            { id: 'e_14', name: '施孟均', level: '櫃台', joinDate: '2024-10-01', status: 'active', imageFilename: '', ratings: {} }
         ];
 
         const monthSelector = document.getElementById('monthSelector');
@@ -625,12 +630,17 @@
             return result;
         }
 
-        function getEmployeeImgUrl(empName) {
-            // 動態產生 GitHub 圖片網址，並套用從 Firebase 抓取到的設定
+        // 修改：智慧判斷圖片網址來源 (包含自訂檔名處理)
+        function getEmployeeImgUrl(emp) {
             let baseUrl = globalGithubUrl;
             if(!baseUrl.endsWith('/')) baseUrl += '/';
-            return `${baseUrl}${encodeURIComponent(empName)}.jpg`;
+            
+            // 如果員工有手動設定自訂圖檔名稱，就使用自訂檔名；否則用「姓名.jpg」
+            const filename = (emp.imageFilename && emp.imageFilename.trim() !== '') ? emp.imageFilename.trim() : `${emp.name}.jpg`;
+            
+            return `${baseUrl}${encodeURIComponent(filename)}`;
         }
+
         function getFallbackImgUrl(empName) {
             return `https://placehold.co/60x60/2c4a3b/ffffff?text=${encodeURIComponent(empName.charAt(0))}`;
         }
@@ -747,7 +757,7 @@
             // 第一列：表頭與員工照片/姓名
             let thead = `<thead><tr><th class="sticky top-0 left-0 bg-primary text-white z-30 w-24 border-b border-emerald-900 p-2 align-bottom shadow-[2px_2px_5px_rgba(0,0,0,0.2)] tracking-widest text-center text-xs">項目 \\ 員工</th>`;
             filteredEmp.forEach(emp => {
-                const imgUrl = getEmployeeImgUrl(emp.name);
+                const imgUrl = getEmployeeImgUrl(emp);
                 const fallbackUrl = getFallbackImgUrl(emp.name);
                 const resignedClass = emp.status === 'resigned' ? 'is-resigned bg-gray-100' : 'bg-white';
                 const resignedBadge = emp.status === 'resigned' ? `<div class="absolute top-0 right-0 bg-red-600 text-white text-[9px] px-1 rounded-bl">離職</div>` : '';
@@ -901,7 +911,7 @@
             // 表頭：員工照片與姓名
             tableHtml += '<thead><tr><th class="bg-primary text-white border-b border-r border-emerald-900 p-1 w-20 md:w-24 font-bold tracking-widest align-bottom">項目 \\ 員工</th>';
             window.currentFilteredEmp.forEach(emp => {
-                const imgUrl = getEmployeeImgUrl(emp.name);
+                const imgUrl = getEmployeeImgUrl(emp);
                 const fallbackUrl = getFallbackImgUrl(emp.name);
                 const resignedBadge = emp.status === 'resigned' ? `<div class="bg-red-600 text-white text-[9px] px-1 rounded absolute top-0 right-0 scale-75">離職</div>` : '';
                 tableHtml += `
@@ -1016,8 +1026,12 @@
         const employeeForm = document.getElementById('employeeForm');
 
         document.getElementById('addEmployeeBtn').addEventListener('click', () => {
-            employeeForm.reset(); document.getElementById('editEmpId').value = ''; document.getElementById('empStatus').value = 'active';
-            document.getElementById('modalTitle').innerText = '新增員工資料'; employeeModal.classList.add('active');
+            employeeForm.reset(); 
+            document.getElementById('editEmpId').value = ''; 
+            document.getElementById('empStatus').value = 'active';
+            document.getElementById('empImage').value = '';
+            document.getElementById('modalTitle').innerText = '新增員工資料'; 
+            employeeModal.classList.add('active');
         });
 
         document.getElementById('closeModalBtn').addEventListener('click', () => employeeModal.classList.remove('active'));
@@ -1030,7 +1044,8 @@
                 name: document.getElementById('empName').value.trim(), 
                 status: document.getElementById('empStatus').value,
                 joinDate: document.getElementById('empJoinDate').value, 
-                level: document.getElementById('empLevel').value
+                level: document.getElementById('empLevel').value,
+                imageFilename: document.getElementById('empImage').value.trim() // 儲存自訂檔名
             };
             const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees_' + currentMonth);
 
@@ -1046,10 +1061,15 @@
 
         window.editEmployee = function(id) {
             const emp = employees.find(e => e.id === id); if (!emp) return;
-            document.getElementById('editEmpId').value = emp.id; document.getElementById('empName').value = emp.name;
-            document.getElementById('empStatus').value = emp.status || 'active'; document.getElementById('empJoinDate').value = emp.joinDate;
+            document.getElementById('editEmpId').value = emp.id; 
+            document.getElementById('empName').value = emp.name;
+            document.getElementById('empStatus').value = emp.status || 'active'; 
+            document.getElementById('empJoinDate').value = emp.joinDate;
             document.getElementById('empLevel').value = emp.level;
-            document.getElementById('modalTitle').innerText = '編輯資料'; employeeModal.classList.add('active');
+            document.getElementById('empImage').value = emp.imageFilename || ''; // 載入自訂檔名
+            
+            document.getElementById('modalTitle').innerText = '編輯資料'; 
+            employeeModal.classList.add('active');
         };
 
         document.getElementById('manageColumnsBtn').addEventListener('click', () => {
