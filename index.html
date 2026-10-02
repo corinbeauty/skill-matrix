@@ -55,13 +55,14 @@
         /* 截圖模式排版 */
         #screenshotContainer { 
             display: none; 
-            position: absolute; 
-            left: 0; top: 0; 
+            position: fixed; /* 改為 fixed，讓它成為獨立的滿版覆蓋層 */
+            left: 0; top: 0; right: 0; bottom: 0;
             width: 100%; 
-            min-height: 100vh;
+            height: 100vh; /* 鎖定與螢幕等高 */
             background: #fdfaf1; 
             z-index: 100;
-            overflow-y: auto;
+            overflow-y: auto; /* 開啟自身的上下捲軸 */
+            overflow-x: hidden;
         }
         #screenshotContainer.active { display: block; }
         
