@@ -73,9 +73,10 @@
 </head>
 <body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden relative">
 
+    <!-- 頂部跑馬燈宣示 -->
     <div class="bg-[#fdfaf1] text-center py-1.5 px-4 border-b border-amber-200 shrink-0 z-40">
         <h2 class="text-sm font-bold text-gray-800 tracking-widest">此評核由店長填寫 總監審閱</h2>
-        <p class="text-[11px] text-gray-500 mt-0.5">評核會依據每月執行狀況調整，並讓人員確認學習及改善方向</p>
+        <p class="text-[11px] text-gray-500 mt-0.5">評核會依據每月執行狀況調整，讓人員確認學習及改善方向，人才培育升遷依據</p>
     </div>
 
     <header class="bg-primary text-white shadow-md py-2 px-4 flex justify-between items-center z-30 shrink-0">
@@ -236,8 +237,9 @@
                 <h1 class="text-xl md:text-2xl font-bold text-primary tracking-widest">不老松足湯 中清店</h1>
                 <h2 class="text-md md:text-lg font-bold text-gray-700 mt-1">員工工作技能總覽 - <span id="screenshotMonth"></span></h2>
             </div>
-            <div class="text-right text-[10px] md:text-xs text-gray-500">
-                <p>此評核由店長填寫 總監審閱</p>
+            <div class="text-right text-[10px] md:text-xs text-gray-500 max-w-[50%]">
+                <p class="font-bold text-gray-700">此評核由店長填寫 總監審閱</p>
+                <p class="my-0.5 leading-tight">評核會依據每月執行狀況調整，讓人員確認學習及改善方向，人才培育升遷依據</p>
                 <p id="screenshotEvalDate">評核日期：尚未設定</p>
             </div>
         </div>
@@ -465,7 +467,7 @@
             { id: 'actions', label: '資料操作', type: 'actions', locked: true, hidden: false }
         ];
 
-        // 預設人員 (已替換為您提供的 14 位人員與預設職級)
+        // 預設人員名單
         const defaultEmployees = [
             { id: 'e_01', name: '黃詩涵', level: '店長', joinDate: '2020-01-01', status: 'active', ratings: {} },
             { id: 'e_02', name: '劉芸汝', level: '主任', joinDate: '2021-01-01', status: 'active', ratings: {} },
