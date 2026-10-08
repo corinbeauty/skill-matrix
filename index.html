@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>不老松中清店 - 員工工作技能表</title>
-    <!-- 匯入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 匯入 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <script>
@@ -52,7 +49,7 @@
         .is-resigned { opacity: 0.6; filter: grayscale(0.8); }
         .is-resigned:hover { opacity: 0.9; filter: grayscale(0.2); }
 
-        /* 截圖模式排版 (Fixed) */
+        /* 截圖模式排版 (Fixed) 獨立滾動視窗 */
         #screenshotContainer { 
             display: none; 
             position: fixed;
@@ -292,20 +289,25 @@
                         <p class="text-[11px] text-gray-500 mt-1">若留空，系統預設以「<strong class="text-primary">姓名.jpg</strong>」自動去 GitHub 抓取。<br>若人員名字與檔名不符，請輸入完整檔名 (含 .jpg)。</p>
                     </div>
                     
-                    <!-- 新增：頭像置中微調預覽區 -->
+                    <!-- 頭像置中微調與縮放預覽區 -->
                     <div class="mt-3 p-3 bg-emerald-50/50 border border-emerald-100 rounded-md">
                         <label class="block text-sm font-bold text-emerald-800 mb-2"><i class="fa-solid fa-crop-simple mr-1"></i> 頭像顯示微調 (預覽)</label>
                         <div class="flex items-center gap-4">
-                            <div class="shrink-0 relative">
-                                <img id="previewAvatar" src="" class="w-16 h-16 rounded-full border-2 border-emerald-300 object-cover bg-white shadow-sm relative z-0" style="object-position: 50% 50%;" onerror="this.src='https://placehold.co/60x60/2c4a3b/ffffff?text=?'">
+                            <!-- 外層 overflow-hidden 確保放大不會超出圓框 -->
+                            <div class="shrink-0 relative w-16 h-16 rounded-full border-2 border-emerald-300 shadow-sm bg-white overflow-hidden">
+                                <img id="previewAvatar" src="" class="w-full h-full object-cover relative z-0" style="object-position: 50% 50%; transform: scale(1);" onerror="this.src='https://placehold.co/60x60/2c4a3b/ffffff?text=?'">
                                 <!-- 十字對齊輔助線 -->
-                                <div class="absolute inset-0 pointer-events-none rounded-full overflow-hidden flex items-center justify-center z-10" style="filter: drop-shadow(0px 0px 2px rgba(0,0,0,0.8));">
+                                <div class="absolute inset-0 pointer-events-none flex items-center justify-center z-10" style="filter: drop-shadow(0px 0px 2px rgba(0,0,0,0.8));">
                                     <div class="absolute h-full w-0 border-l-[1.5px] border-dashed border-white/90"></div>
                                     <div class="absolute w-full h-0 border-t-[1.5px] border-dashed border-white/90"></div>
                                     <div class="absolute w-1.5 h-1.5 bg-red-500 rounded-full"></div>
                                 </div>
                             </div>
                             <div class="flex-grow flex flex-col gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-600 font-medium w-6">大小</span>
+                                    <input type="range" id="imgZoom" min="1" max="3" step="0.05" value="1" class="w-full accent-emerald-600 cursor-pointer">
+                                </div>
                                 <div class="flex items-center gap-2">
                                     <span class="text-xs text-gray-600 font-medium w-6">左右</span>
                                     <input type="range" id="imgPosX" min="0" max="100" value="50" class="w-full accent-emerald-600 cursor-pointer">
@@ -326,7 +328,7 @@
         </div>
     </div>
 
-    <!-- Modal: 管理員驗證 -->
+    <!-- Modal: 管理員驗證 (密碼輸入) -->
     <div id="authModal" class="modal-overlay fixed inset-0 z-[100] items-center justify-center">
         <div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-4 transform transition-all">
             <div class="text-center mb-4">
@@ -335,6 +337,7 @@
                 <p class="text-xs text-gray-500 mt-1">請輸入密碼以解鎖編輯與管理權限</p>
             </div>
             <div class="mb-4">
+                <!-- 已移除 placeholder 的 4 個點點 -->
                 <input type="password" id="adminPassword" class="w-full border border-gray-300 rounded-md p-2 text-center text-lg tracking-widest focus:ring-2 focus:ring-primary focus:border-primary outline-none">
             </div>
             <div class="flex gap-2">
@@ -355,7 +358,7 @@
                 <form id="sysSettingsForm">
                     <div class="mb-4">
                         <label class="block text-sm font-bold text-gray-700 mb-2">GitHub 圖片資料夾網址 (Raw URL)</label>
-                        <input type="url" id="settingGithubUrl" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary text-sm" placeholder="例如: https://raw.githubusercontent.com/corinbeauty/skill-matrix/main/" required>
+                        <input type="url" id="settingGithubUrl" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary text-sm" required>
                         <div class="mt-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded border border-gray-200">
                             <p class="font-bold mb-1"><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i>系統自動抓圖機制：</p>
                             <p>系統會自動將上方網址加上「<strong>員工姓名.jpg</strong>」去抓取圖片。<br>請確保網址結尾有包含斜線 <code class="bg-gray-200 px-1 rounded">/</code>。<br>您也可以在編輯個別員工時手動指定其他檔名。</p>
@@ -448,7 +451,7 @@
             measurementId: "G-CRGNXZ9WVG"
         };
         
-        // 獨立資料夾名稱，絕不會與你的班表系統衝突
+        // 獨立資料夾名稱，絕不會與班表系統衝突
         const APP_ID = 'bulaosong-skills'; 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -462,14 +465,14 @@
         let rowsConfig = [];
         let evaluationDate = '';
         
-        // ====== 全域設定：已預設為你要求的 GitHub 路徑 ======
+        // ====== 預設 GitHub Raw URL ======
         let globalGithubUrl = "https://raw.githubusercontent.com/corinbeauty/skill-matrix/main/";
 
         let unsubConfig = null;
         let unsubEmployees = null;
         let unsubComplaints = null;
 
-        // 預設欄位設定
+        // 預設欄位設定 (包含主管行政作業)
         const defaultRowsConfig = [
             { id: 'joinDate', label: '入職日', type: 'info', locked: true, hidden: false },
             { id: 'tenure', label: '年資', type: 'info', locked: true, hidden: false },
@@ -504,7 +507,7 @@
             { id: 'actions', label: '資料操作', type: 'actions', locked: true, hidden: false }
         ];
 
-        // 預設人員名單
+        // 依照截圖提供的 14 位人員名單與職位設定
         const defaultEmployees = [
             { id: 'e_01', name: '黃詩涵', level: '店長', joinDate: '2020-01-01', status: 'active', imageFilename: '', ratings: {} },
             { id: 'e_02', name: '劉芸汝', level: '主任', joinDate: '2021-01-01', status: 'active', imageFilename: '', ratings: {} },
@@ -574,7 +577,6 @@
                 snapshot.forEach(doc => {
                     if(doc.id === 'rows') {
                         rowsConfig = doc.data().data;
-                        // 確保所有 row 都有 hidden 屬性
                         rowsConfig.forEach(r => { if(r.hidden === undefined) r.hidden = false; });
                         hasRows = true;
                     }
@@ -661,14 +663,11 @@
             return result;
         }
 
-        // 修改：智慧判斷圖片網址來源 (包含自訂檔名處理)
+        // 智慧判斷圖片網址來源 (包含自訂檔名處理)
         function getEmployeeImgUrl(emp) {
             let baseUrl = globalGithubUrl;
             if(!baseUrl.endsWith('/')) baseUrl += '/';
-            
-            // 如果員工有手動設定自訂圖檔名稱，就使用自訂檔名；否則用「姓名.jpg」
             const filename = (emp.imageFilename && emp.imageFilename.trim() !== '') ? emp.imageFilename.trim() : `${emp.name}.jpg`;
-            
             return `${baseUrl}${encodeURIComponent(filename)}`;
         }
 
@@ -782,7 +781,6 @@
             }
             emptyState.classList.add('hidden'); emptyState.classList.remove('flex');
 
-            // 篩選出目前「沒有被隱藏」的列設定
             const visibleRows = rowsConfig.filter(r => !r.hidden);
 
             // 第一列：表頭與員工照片/姓名
@@ -791,16 +789,19 @@
                 const imgUrl = getEmployeeImgUrl(emp);
                 const fallbackUrl = getFallbackImgUrl(emp.name);
                 const resignedClass = emp.status === 'resigned' ? 'is-resigned bg-gray-100' : 'bg-white';
-                const resignedBadge = emp.status === 'resigned' ? `<div class="absolute top-0 right-0 bg-red-600 text-white text-[9px] px-1 rounded-bl">離職</div>` : '';
+                const resignedBadge = emp.status === 'resigned' ? `<div class="absolute top-0 right-0 bg-red-600 text-white text-[9px] px-1 rounded-bl z-10">離職</div>` : '';
                 
-                // 取得位置微調參數，預設為 50% (置中)
+                // 取得位置與縮放微調參數
                 const posX = emp.imgPosX !== undefined ? emp.imgPosX : 50;
                 const posY = emp.imgPosY !== undefined ? emp.imgPosY : 50;
+                const zoom = emp.imgZoom !== undefined ? emp.imgZoom : 1;
 
                 thead += `
                     <th class="sticky top-0 ${resignedClass} border-b border-gray-300 z-20 min-w-[90px] p-2 text-center shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-r border-gray-200 relative">
                         ${resignedBadge}
-                        <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}'" alt="${emp.name}" style="object-position: ${posX}% ${posY}%;" class="w-12 h-12 rounded-full mx-auto mb-1 border-2 border-gray-200 object-cover shadow-sm bg-gray-50">
+                        <div class="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-gray-200 overflow-hidden shadow-sm bg-gray-50 relative">
+                            <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}'" alt="${emp.name}" style="object-position: ${posX}% ${posY}%; transform: scale(${zoom});" class="w-full h-full object-cover">
+                        </div>
                         <div class="font-bold text-gray-800 text-sm leading-tight">${emp.name}</div>
                     </th>`;
             });
@@ -938,10 +939,9 @@
             const printContent = document.getElementById('screenshotContent');
             printContent.innerHTML = '';
             
-            // 排除系統保留的「資料操作」欄位
             const visibleRows = rowsConfig.filter(r => !r.hidden && r.type !== 'actions');
             
-            // 建立高密度矩陣表格，利用 Tailwind 緊湊排版
+            // 建立高密度矩陣表格
             let tableHtml = '<div class="overflow-x-auto overflow-y-hidden border-2 border-primary rounded-lg bg-white shadow-xl mb-8"><table class="w-full text-center border-collapse text-[10px] md:text-[11px] leading-tight min-w-max">';
             
             // 表頭：員工照片與姓名
@@ -949,16 +949,19 @@
             window.currentFilteredEmp.forEach(emp => {
                 const imgUrl = getEmployeeImgUrl(emp);
                 const fallbackUrl = getFallbackImgUrl(emp.name);
-                const resignedBadge = emp.status === 'resigned' ? `<div class="bg-red-600 text-white text-[9px] px-1 rounded absolute top-0 right-0 scale-75">離職</div>` : '';
+                const resignedBadge = emp.status === 'resigned' ? `<div class="bg-red-600 text-white text-[9px] px-1 rounded absolute top-0 right-0 scale-75 z-10">離職</div>` : '';
                 
-                // 截圖畫面也要套用相片微調
+                // 截圖畫面也要套用相片與縮放微調
                 const posX = emp.imgPosX !== undefined ? emp.imgPosX : 50;
                 const posY = emp.imgPosY !== undefined ? emp.imgPosY : 50;
+                const zoom = emp.imgZoom !== undefined ? emp.imgZoom : 1;
 
                 tableHtml += `
                     <th class="bg-white border-b border-r border-gray-300 p-1 relative min-w-[60px] md:min-w-[70px]">
                         ${resignedBadge}
-                        <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}'" style="object-position: ${posX}% ${posY}%;" class="w-8 h-8 md:w-10 md:h-10 rounded-full mx-auto mb-1 border border-gray-200 object-cover bg-gray-50 shadow-sm">
+                        <div class="w-8 h-8 md:w-10 md:h-10 mx-auto mb-1 rounded-full border border-gray-200 overflow-hidden shadow-sm bg-gray-50 relative">
+                            <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}'" style="object-position: ${posX}% ${posY}%; transform: scale(${zoom});" class="w-full h-full object-cover">
+                        </div>
                         <div class="font-bold text-gray-800 text-[10px] md:text-xs whitespace-nowrap">${emp.name}</div>
                     </th>`;
             });
@@ -989,7 +992,6 @@
                             }
                         } else if (row.type === 'rating') {
                             let r = emp.ratings[row.id] || 0;
-                            // 濃縮的星星與數字排版
                             let starsHtml = `<div class="flex flex-col items-center justify-center gap-0.5">`;
                             starsHtml += `<div class="flex text-[7px] md:text-[9px]">`;
                             for(let i=1; i<=5; i++) {
@@ -1072,17 +1074,20 @@
             const filename = document.getElementById('empImage').value.trim();
             const posX = document.getElementById('imgPosX').value;
             const posY = document.getElementById('imgPosY').value;
+            const zoom = document.getElementById('imgZoom').value;
             const previewImg = document.getElementById('previewAvatar');
 
             if (!name && !filename) {
                 previewImg.src = 'https://placehold.co/60x60/2c4a3b/ffffff?text=?';
                 previewImg.style.objectPosition = '50% 50%';
+                previewImg.style.transform = 'scale(1)';
                 return;
             }
 
             const tempEmp = { name: name || '預設', imageFilename: filename };
             previewImg.src = getEmployeeImgUrl(tempEmp);
             previewImg.style.objectPosition = `${posX}% ${posY}%`;
+            previewImg.style.transform = `scale(${zoom})`;
         }
 
         // 綁定輸入即時預覽事件
@@ -1090,6 +1095,7 @@
         document.getElementById('empImage').addEventListener('input', updateAvatarPreview);
         document.getElementById('imgPosX').addEventListener('input', updateAvatarPreview);
         document.getElementById('imgPosY').addEventListener('input', updateAvatarPreview);
+        document.getElementById('imgZoom').addEventListener('input', updateAvatarPreview);
 
         document.getElementById('addEmployeeBtn').addEventListener('click', () => {
             employeeForm.reset(); 
@@ -1098,6 +1104,7 @@
             document.getElementById('empImage').value = '';
             document.getElementById('imgPosX').value = 50;
             document.getElementById('imgPosY').value = 50;
+            document.getElementById('imgZoom').value = 1;
             updateAvatarPreview();
             document.getElementById('modalTitle').innerText = '新增員工資料'; 
             employeeModal.classList.add('active');
@@ -1116,7 +1123,8 @@
                 level: document.getElementById('empLevel').value,
                 imageFilename: document.getElementById('empImage').value.trim(),
                 imgPosX: parseInt(document.getElementById('imgPosX').value) || 50,
-                imgPosY: parseInt(document.getElementById('imgPosY').value) || 50
+                imgPosY: parseInt(document.getElementById('imgPosY').value) || 50,
+                imgZoom: parseFloat(document.getElementById('imgZoom').value) || 1
             };
             const colEmployees = collection(db, 'artifacts', APP_ID, 'public', 'data', 'employees_' + currentMonth);
 
@@ -1140,6 +1148,7 @@
             document.getElementById('empImage').value = emp.imageFilename || ''; // 載入自訂檔名
             document.getElementById('imgPosX').value = emp.imgPosX !== undefined ? emp.imgPosX : 50;
             document.getElementById('imgPosY').value = emp.imgPosY !== undefined ? emp.imgPosY : 50;
+            document.getElementById('imgZoom').value = emp.imgZoom !== undefined ? emp.imgZoom : 1;
             
             updateAvatarPreview(); // 更新預覽圖
             document.getElementById('modalTitle').innerText = '編輯資料'; 
@@ -1150,7 +1159,6 @@
             renderColumnsManageTable(); document.getElementById('manageColumnsModal').classList.add('active');
         });
 
-        // 系統設定 Modal 控制
         document.getElementById('sysSettingsBtn').addEventListener('click', () => {
             document.getElementById('sysSettingsModal').classList.add('active');
         });
@@ -1161,7 +1169,6 @@
             const globalConfigRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'global_settings', 'system');
             
             updateDoc(globalConfigRef, { githubUrl: newUrl }).catch(() => {
-                // 如果文件還不存在就用 setDoc
                 setDoc(globalConfigRef, { githubUrl: newUrl });
             });
             
@@ -1247,7 +1254,6 @@
         };
 
         window.addNewRow = function(type) {
-            // 使用內建 prompt 快速取得名稱
             const label = window.prompt(`請輸入新${type === 'category' ? '分類標題' : '評分項目'}的名稱：`);
             if (!label || label.trim() === '') return;
             const insertIndex = rowsConfig.findIndex(r => r.type === 'actions');
