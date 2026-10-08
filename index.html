@@ -297,7 +297,13 @@
                         <label class="block text-sm font-bold text-emerald-800 mb-2"><i class="fa-solid fa-crop-simple mr-1"></i> 頭像顯示微調 (預覽)</label>
                         <div class="flex items-center gap-4">
                             <div class="shrink-0 relative">
-                                <img id="previewAvatar" src="" class="w-16 h-16 rounded-full border-2 border-emerald-300 object-cover bg-white shadow-sm" style="object-position: 50% 50%;" onerror="this.src='https://placehold.co/60x60/2c4a3b/ffffff?text=?'">
+                                <img id="previewAvatar" src="" class="w-16 h-16 rounded-full border-2 border-emerald-300 object-cover bg-white shadow-sm relative z-0" style="object-position: 50% 50%;" onerror="this.src='https://placehold.co/60x60/2c4a3b/ffffff?text=?'">
+                                <!-- 十字對齊輔助線 -->
+                                <div class="absolute inset-0 pointer-events-none rounded-full overflow-hidden flex items-center justify-center z-10" style="filter: drop-shadow(0px 0px 2px rgba(0,0,0,0.8));">
+                                    <div class="absolute h-full w-0 border-l-[1.5px] border-dashed border-white/90"></div>
+                                    <div class="absolute w-full h-0 border-t-[1.5px] border-dashed border-white/90"></div>
+                                    <div class="absolute w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                                </div>
                             </div>
                             <div class="flex-grow flex flex-col gap-2">
                                 <div class="flex items-center gap-2">
@@ -329,7 +335,7 @@
                 <p class="text-xs text-gray-500 mt-1">請輸入密碼以解鎖編輯與管理權限</p>
             </div>
             <div class="mb-4">
-                <input type="password" id="adminPassword" class="w-full border border-gray-300 rounded-md p-2 text-center text-lg tracking-widest focus:ring-2 focus:ring-primary focus:border-primary outline-none" placeholder="••••">
+                <input type="password" id="adminPassword" class="w-full border border-gray-300 rounded-md p-2 text-center text-lg tracking-widest focus:ring-2 focus:ring-primary focus:border-primary outline-none">
             </div>
             <div class="flex gap-2">
                 <button onclick="document.getElementById('authModal').classList.remove('active')" class="w-1/3 bg-gray-200 text-gray-700 py-2 rounded-md hover:bg-gray-300 transition-colors">取消</button>
