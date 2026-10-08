@@ -237,7 +237,6 @@
                 <h2 class="text-md md:text-lg font-bold text-gray-700 mt-1">員工工作技能總覽 - <span id="screenshotMonth"></span></h2>
             </div>
             
-            <!-- 將文字改為置中 (text-center)，並用 flex-grow 佔據中間空間，同時在右側留下 pr-32 避免被按鈕遮擋 -->
             <div class="text-center text-[10px] md:text-xs text-gray-500 flex-grow px-2 md:px-8 pr-28 md:pr-32">
                 <p class="font-bold text-gray-700 text-[11px] md:text-sm mb-0.5">此評核由店長填寫 總監審閱</p>
                 <p class="my-0.5 leading-tight">評核會依據每月執行狀況調整，讓人員確認學習及改善方向，人才培育升遷依據</p>
@@ -250,7 +249,7 @@
     </div>
 
     <!-- Modal: 新增/編輯員工 -->
-    <div id="employeeModal" class="modal-overlay fixed inset-0 z-50 items-center justify-center">
+    <div id="employeeModal" class="modal-overlay fixed inset-0 z-[100] items-center justify-center">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-primary text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold text-lg" id="modalTitle">新增員工資料</h3>
@@ -315,14 +314,110 @@
                 </form>
             </div>
             <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+                <button type="button" id="cancelModalBtn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors">取消</button>
+                <button form="employeeForm" type="submit" class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors shadow-sm font-bold">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 管理員驗證 -->
+    <div id="authModal" class="modal-overlay fixed inset-0 z-[100] items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-4 transform transition-all">
+            <div class="text-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2 text-gray-600 text-xl"><i class="fa-solid fa-lock"></i></div>
+                <h3 class="text-lg font-bold text-gray-800">管理員驗證</h3>
+                <p class="text-xs text-gray-500 mt-1">請輸入密碼以解鎖編輯與管理權限</p>
+            </div>
+            <div class="mb-4">
+                <input type="password" id="adminPassword" class="w-full border border-gray-300 rounded-md p-2 text-center text-lg tracking-widest focus:ring-2 focus:ring-primary focus:border-primary outline-none" placeholder="••••">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('authModal').classList.remove('active')" class="w-1/3 bg-gray-200 text-gray-700 py-2 rounded-md hover:bg-gray-300 transition-colors">取消</button>
+                <button id="verifyPasswordBtn" class="w-2/3 bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 transition-colors font-bold shadow">驗證並解鎖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 系統設定 -->
+    <div id="sysSettingsModal" class="modal-overlay fixed inset-0 z-[100] items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden flex flex-col">
+            <div class="bg-gray-700 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-sliders mr-2"></i>系統設定</h3>
+                <button onclick="document.getElementById('sysSettingsModal').classList.remove('active')" class="text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6">
+                <form id="sysSettingsForm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">GitHub 圖片資料夾網址 (Raw URL)</label>
+                        <input type="url" id="settingGithubUrl" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary text-sm" placeholder="例如: https://raw.githubusercontent.com/corinbeauty/skill-matrix/main/" required>
+                        <div class="mt-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded border border-gray-200">
+                            <p class="font-bold mb-1"><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i>系統自動抓圖機制：</p>
+                            <p>系統會自動將上方網址加上「<strong>員工姓名.jpg</strong>」去抓取圖片。<br>請確保網址結尾有包含斜線 <code class="bg-gray-200 px-1 rounded">/</code>。<br>您也可以在編輯個別員工時手動指定其他檔名。</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
                 <button onclick="document.getElementById('sysSettingsModal').classList.remove('active')" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors">取消</button>
                 <button form="sysSettingsForm" type="submit" class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors shadow-sm font-bold">儲存設定</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal: 欄位管理 -->
+    <div id="manageColumnsModal" class="modal-overlay fixed inset-0 z-[100] items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-4 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-emerald-700 text-white p-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-gear mr-2"></i>欄位與評分項目管理</h3>
+                <button onclick="document.getElementById('manageColumnsModal').classList.remove('active')" class="text-emerald-200 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-4 bg-emerald-50 border-b border-emerald-100 flex gap-2 shrink-0">
+                <button onclick="addNewRow('category')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm font-bold transition-colors shadow-sm"><i class="fa-solid fa-layer-group mr-1"></i>新增大分類</button>
+                <button onclick="addNewRow('rating')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold transition-colors shadow-sm"><i class="fa-solid fa-star mr-1"></i>新增評分項目</button>
+                <span class="text-xs text-gray-500 self-center ml-auto">提示：點擊列表中的名稱可直接修改，變更將即時儲存至雲端。</span>
+            </div>
+            <div class="overflow-y-auto flex-grow p-0">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-700 sticky top-0 z-10 shadow-sm text-xs uppercase">
+                        <tr>
+                            <th class="px-4 py-3 w-24">狀態</th>
+                            <th class="px-4 py-3 w-32">類型</th>
+                            <th class="px-4 py-3">顯示名稱 (點擊修改)</th>
+                            <th class="px-4 py-3 w-40 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="columnsManageBody" class="divide-y divide-gray-200">
+                        <!-- 動態產生 -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end shrink-0">
+                <button onclick="document.getElementById('manageColumnsModal').classList.remove('active')" class="px-6 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800 transition-colors shadow font-bold">完成並關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 確認刪除欄位 -->
+    <div id="deleteColModal" class="modal-overlay fixed inset-0 z-[110] items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-4 transform transition-all border-t-4 border-red-500">
+            <div class="text-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-2 text-red-600 text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h3 class="text-lg font-bold text-gray-800">危險操作：刪除欄位</h3>
+                <p class="text-xs text-red-500 mt-1">警告：刪除後，所有員工在該欄位的評分紀錄將永久遺失！若只是暫時不用，建議使用「隱藏」功能。</p>
+            </div>
+            <div class="mb-4">
+                <input type="hidden" id="deleteColIndex">
+                <input type="password" id="deleteColPassword" class="w-full border border-gray-300 rounded-md p-2 text-center text-lg tracking-widest focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" placeholder="輸入 8888 確認刪除">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('deleteColModal').classList.remove('active')" class="w-1/2 bg-gray-200 text-gray-700 py-2 rounded-md hover:bg-gray-300 transition-colors font-bold">取消</button>
+                <button onclick="confirmDeleteRow()" class="w-1/2 bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition-colors font-bold shadow">確認刪除</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 自訂訊息框 -->
-    <div id="messageModal" class="modal-overlay fixed inset-0 z-[90] items-center justify-center">
+    <div id="messageModal" class="modal-overlay fixed inset-0 z-[120] items-center justify-center">
         <div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-4 text-center transform transition-all fade-in">
             <div id="messageIcon" class="text-5xl mb-4 text-primary"><i class="fa-solid fa-circle-check"></i></div>
             <h3 id="messageTitle" class="text-xl font-bold text-gray-800 mb-2">提示</h3>
